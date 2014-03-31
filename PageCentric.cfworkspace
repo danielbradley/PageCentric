@@ -1,0 +1,3 @@
+<workspace language='Java'>
+	<project directory='./libpagecentric/' source='source/java' />
+</workspace>

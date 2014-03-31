@@ -1,0 +1,40 @@
+<?php
+
+header( "Content-type:text/javascript" );
+
+include_once(         "base.js" );
+include_once(      "article.js" );
+include_once(   "checklimit.js" );
+include_once(    "checkshow.js" );
+include_once(    "clearform.js" );
+include_once(  "clickchange.js" );
+include_once(   "clickclear.js" );
+include_once(    "clickfile.js" );
+include_once(    "clickhome.js" );
+include_once(  "clicksubmit.js" );
+include_once(   "creditcard.js" );
+include_once(   "fileupdate.js" );
+include_once(   "formchange.js" );
+include_once(        "forms.js" );
+include_once( "hideancestor.js" );
+include_once(       "hideme.js" );
+include_once(   "hideparent.js" );
+include_once(   "limitwords.js" );
+include_once(  "multiselect.js" );
+include_once(     "onscroll.js" );
+include_once(  "pausevideos.js" );
+include_once(  "placeholder.js" );
+include_once(    "playvideo.js" );
+include_once(        "popup.js" );
+include_once(  "selectvideo.js" );
+include_once(    "setcookie.js" );
+include_once(  "scrollboard.js" );
+include_once(   "scrolldown.js" );
+include_once(         "show.js" );
+include_once(     "showhide.js" );
+include_once(    "showmodal.js" );
+include_once(       "sticky.js" );
+include_once(      "submenu.js" );
+include_once(       "toggle.js" );
+include_once(     "validate.js" );
+include_once(   "validation.js" );

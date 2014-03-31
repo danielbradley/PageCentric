@@ -1,0 +1,193 @@
+...            Tables: files
+
+~tables~
+DROP   TABLE files;
+CREATE TABLE files
+(
+    FILE                            INT(11)  NOT NULL AUTO_INCREMENT,
+    USER                            INT(11)  NOT NULL,
+    version                    DATETIME      NOT NULL,
+    kind                           CHAR(30)  NOT NULL,
+
+    original_filename              CHAR(255) NOT NULL,
+    filename                       CHAR(255) NOT NULL,
+    filetype                       CHAR(99)  NOT NULL,
+    filesize                       CHAR(45)  NOT NULL,
+    fileextension                  CHAR(10)  NOT NULL,
+    salt                            INT(4)   NOT NULL,
+    token                          CHAR(64)  NOT NULL,
+    base64                     LONGBLOB      NOT NULL,
+
+    PRIMARY KEY (FILE)
+);
+~
+
+....            Views
+
+~views~
+DROP   VIEW view_files;
+CREATE VIEW view_files AS
+    SELECT FILE, version, kind, original_filename, filename, filetype, filesize, fileextension, salt, token FROM files;
+~
+
+~views~
+DROP   VIEW view_files_tokens;
+CREATE VIEW view_files_tokens AS
+    SELECT FILE, token FROM files;
+~
+
+
+....            Stored procedures
+
+~sp~
+DROP   PROCEDURE Files_Replace;
+DELIMITER //
+CREATE PROCEDURE Files_Replace
+(
+  $Sid                             CHAR(64),
+  $FILE                             INT(11),
+  $USER                             INT(11),
+  $kind                            CHAR(30),
+  $original_filename               CHAR(255),
+  $filename                        CHAR(255),
+  $filetype                        CHAR(99),
+  $filesize                        CHAR(45),
+  $fileextension                   CHAR(10),
+  $base64                      LONGBLOB
+)
+BEGIN
+
+DECLARE $FILE  INT;
+DECLARE $salt  TEXT;
+DECLARE $token TEXT;
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER OR "ADMIN" = @idtype THEN
+
+  SET $token = generate_salt();
+
+  WHILE EXISTS( SELECT * FROM files WHERE token=$token ) DO
+    SET $token = generate_salt();
+  END WHILE;
+
+  REPLACE INTO files
+    (  FILE,  USER,  version,  kind,  original_filename,  filename,  filetype,  filesize,  fileextension,  salt,  token,  base64 )
+  VALUES
+    ( $FILE, $USER,    NOW(), $kind, $original_filename, $filename, $filetype, $filesize, $fileextension,     0, $token, $base64 );
+
+  SELECT LAST_INSERT_ID() INTO $FILE;
+
+END IF;
+
+SELECT $FILE AS FILE;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   FUNCTION Files_Exists_By_Kind;
+DELIMITER //
+CREATE FUNCTION Files_Exists_By_Kind
+(
+  $Sid                             CHAR(64),
+  $USER                             INT(11),
+  $kind                            CHAR(30)
+)
+RETURNS BOOL
+READS SQL DATA
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER OR "ADMIN" = @idtype THEN
+
+  return EXISTS( SELECT * FROM files WHERE USER=$USER AND kind=$kind );
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Files_Retrieve_Info_By_Kind;
+DELIMITER //
+CREATE PROCEDURE Files_Retrieve_Info_By_Kind
+(
+  $Sid                             CHAR(64),
+  $USER                             INT(11),
+  $kind                            CHAR(30)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER OR "ADMIN" = @idtype THEN
+
+  SELECT * FROM view_files WHERE USER=$USER AND kind=$kind ORDER BY version DESC;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Files_Retrieve;
+DELIMITER //
+CREATE PROCEDURE Files_Retrieve
+(
+  $Sid                             CHAR(64),
+  $FILE                             INT(11)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+SELECT * FROM files WHERE USER=@USER AND FILE=$FILE ORDER BY version DESC LIMIT 1;
+
+END
+//
+DELIMITER ;
+~
+
+This version removes authentication requirement.
+
+~
+DROP   PROCEDURE Files_Retrieve;
+DELIMITER //
+CREATE PROCEDURE Files_Retrieve
+(
+  $Sid                             CHAR(64),
+  $FILE                             INT(11)
+)
+BEGIN
+
+SELECT * FROM files WHERE FILE=$FILE ORDER BY version DESC LIMIT 1;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Files_Retrieve_By_Token;
+DELIMITER //
+CREATE PROCEDURE Files_Retrieve_By_Token
+(
+  $Sid                             CHAR(64),
+  $token                           CHAR(64)
+)
+BEGIN
+
+SELECT * FROM files WHERE token=$token ORDER BY version DESC LIMIT 1;
+
+END
+//
+DELIMITER ;
+~

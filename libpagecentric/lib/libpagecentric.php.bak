@@ -1,0 +1,56 @@
+<?php
+
+$SOURCE = BASE . "/dep/libpagecentric/source/php";
+
+include_once( $SOURCE . "/pagecentric.accounts.controllers/AccountsController.php" );
+include_once( $SOURCE . "/pagecentric.accounts.controls/CreateAccountControl.php" );
+include_once( $SOURCE . "/pagecentric.accounts.controls/LoginControl.php" );
+include_once( $SOURCE . "/pagecentric.accounts.forms/CreateAccountForm.php" );
+include_once( $SOURCE . "/pagecentric.accounts.forms/LoginForm.php" );
+
+include_once( $SOURCE . "/pagecentric.content.models/Content.php" );
+
+include_once( $SOURCE . "/pagecentric.html/Accordion.php" );
+include_once( $SOURCE . "/pagecentric.html/AutoForm.php" );
+include_once( $SOURCE . "/pagecentric.html/Breadcrumbs.php" );
+include_once( $SOURCE . "/pagecentric.html/Menu.php" );
+include_once( $SOURCE . "/pagecentric.html/PassInput.php" );
+include_once( $SOURCE . "/pagecentric.html/TextArea.php" );
+include_once( $SOURCE . "/pagecentric.html/TextInput.php" );
+
+include_once( $SOURCE . "/pagecentric.html.autoform/AutoFormButton.php" );
+include_once( $SOURCE . "/pagecentric.html.autoform/AutoFormElement.php" );
+include_once( $SOURCE . "/pagecentric.html.autoform/AutoFormFile.php" );
+include_once( $SOURCE . "/pagecentric.html.autoform/AutoFormFreeForm.php" );
+include_once( $SOURCE . "/pagecentric.html.autoform/AutoFormInput.php" );
+include_once( $SOURCE . "/pagecentric.html.autoform/AutoFormTextArea.php" );
+include_once( $SOURCE . "/pagecentric.html.autoform/AutoFormTextInput.php" );
+
+include_once( $SOURCE . "/pagecentric.html.forms/CheckboxGroup.php" );
+include_once( $SOURCE . "/pagecentric.html.forms/RadioGroup.php" );
+include_once( $SOURCE . "/pagecentric.html.forms/SelectGroup.php" );
+
+include_once( $SOURCE . "/pagecentric.html.modals/ModalView.php" );
+
+include_once( $SOURCE . "/pagecentric.initialisation.controllers/InitialisationController.php" );
+include_once( $SOURCE . "/pagecentric.initialisation.controls/InitialisationControl.php" );
+include_once( $SOURCE . "/pagecentric.initialisation.page/InitialisationPage.php" );
+include_once( $SOURCE . "/pagecentric.initialisation.views/DBCredentialsView.php" );
+
+include_once( $SOURCE . "/pagecentric.objects/Date.php" );
+include_once( $SOURCE . "/pagecentric.objects/Email.php" );
+include_once( $SOURCE . "/pagecentric.objects/EmailAddress.php" );
+include_once( $SOURCE . "/pagecentric.objects/InputValidation.php" );
+include_once( $SOURCE . "/pagecentric.objects/SQL.php" );
+include_once( $SOURCE . "/pagecentric.objects/URLParameters.php" );
+
+include_once( $SOURCE . "/pagecentric.page/Page.php" );
+
+include_once( $SOURCE . "/pagecentric.util/DBi.php" );
+include_once( $SOURCE . "/pagecentric.util/HTML.php" );
+include_once( $SOURCE . "/pagecentric.util/HelperFunctions.php" );
+include_once( $SOURCE . "/pagecentric.util/Input.php" );
+include_once( $SOURCE . "/pagecentric.util/MVC.php" );
+include_once( $SOURCE . "/pagecentric.util/Printer.php" );
+include_once( $SOURCE . "/pagecentric.util/SessionSP.php" );
+include_once( $SOURCE . "/pagecentric.util/User.php" );

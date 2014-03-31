@@ -1,0 +1,119 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='/Users/daniel/Software/bin/../Libraries/Platforms/Astral/0.x/java2html/bin/../share/css/java.css'>
+</head>
+<body>
+<pre>
+
+<span class='FILE' name='/Volumes/VM/Projects/PageCentric/Source/PageCentric/1.3.0/libpagecentric/source/java/org/pagecentric/util/printer.java'><span class='PACKAGE' name=''><span class='KEYWORD'>package</span> <span class='NAME'>org</span><span class='SELECTOR'>.</span><span class='NAME'>pagecentric</span><span class='SELECTOR'>.</span><span class='NAME'>util</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='IMPORT' name=''><span class='KEYWORD'>import</span> <span class='NAME'>java</span><span class='SELECTOR'>.</span><span class='NAME'>io</span><span class='SELECTOR'>.</span><span class='NAME'>PrintStream</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='CLASS' name=''><span class='MODIFIER'>public</span> <span class='KEYWORD'>class</span> <span class='CLASSNAME'>printer</span><span class='NEWLINE'>
+</span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>PrintStream</span> <span class='VARIABLE'>s</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>int</span> <span class='VARIABLE'>tabs</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>boolean</span> <span class='VARIABLE'>buffering</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>StringBuffer</span> <span class='VARIABLE'>buffer</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='METHOD' name='printer(PrintStream)'><span class='MODIFIER'>public</span> <span class='METHODNAME'>printer</span><span class='PARAMETERS inline' name='PrintStream'><span>(</span> <span class='PARAMETER inline' name='PrintStream'><span class='TYPE'>PrintStream</span> <span class='VARIABLE'>stream</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>tabs</span> <span class='ASSIGNMENTOP'>=</span> <span class='INTEGER'>0</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>buffering</span> <span class='ASSIGNMENTOP'>=</span> <span class='NAME'>false</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>s</span> <span class='ASSIGNMENTOP'>=</span> <span class='NAME'>stream</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>buffer</span> <span class='ASSIGNMENTOP'>=</span> <span class='KEYWORD'>new</span> <span class='METHODCALL inline' name='StringBuffer'><span class='CONSTRUCTOR'>StringBuffer</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='println(String)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>println</span><span class='PARAMETERS inline' name='String'><span>(</span> <span class='PARAMETER inline' name='String'><span class='TYPE'>String</span> <span class='VARIABLE'>aString</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>for</span> <span class='EXPRESSION' name=''><span>(</span> <span class='CLAUSE' name=''><span class='TYPE'>int</span> <span class='VARIABLE'>i</span><span class='ASSIGNMENTOP'>=</span><span class='INTEGER'>0</span><span class='STOP'>;</span> </span><span class='CLAUSE' name=''><span class='TYPE'>i</span> <span class='INFIXOP'>&lt;</span> <span class='VARIABLE'>tabs</span><span class='STOP'>;</span> </span><span class='CLAUSE' name=''><span class='NAME'>i</span><span class='PREPOSTFIXOP'>++</span> </span><span>)</span> </span><span class='METHODCALL inline' name='writeout'><span class='METHODCALL'>writeout</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"\t"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='writeout'><span class='METHODCALL'>writeout</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>aString</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='writeout'><span class='METHODCALL'>writeout</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"\n"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='writeout(String)'><span class='MODIFIER'>private</span> <span class='TYPE'>void</span> <span class='METHODNAME'>writeout</span><span class='PARAMETERS inline' name='String'><span>(</span> <span class='PARAMETER inline' name='String'><span class='TYPE'>String</span> <span class='VARIABLE'>aString</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>if</span> <span class='EXPRESSION' name=''><span>(</span> <span class='CLAUSE' name=''><span class='NAME'>buffering</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='TAB'>	</span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='NAME'>buffer</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='append'><span class='METHODCALL'>append</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>aString</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>else</span><span class='NEWLINE'>
+</span><span class='TAB'>	</span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='NAME'>s</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='print'><span class='METHODCALL'>print</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>aString</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='writeBuffer()'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>writeBuffer</span><span class='PARAMETERS inline' name=''><span>(</span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>s</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='print'><span class='METHODCALL'>print</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>buffer</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='toString'><span class='METHODCALL'>toString</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span> </span></span></span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>buffer</span> <span class='ASSIGNMENTOP'>=</span> <span class='KEYWORD'>new</span> <span class='METHODCALL inline' name='StringBuffer'><span class='CONSTRUCTOR'>StringBuffer</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>buffering</span> <span class='ASSIGNMENTOP'>=</span> <span class='NAME'>false</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='indent()'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>indent</span><span class='PARAMETERS inline' name=''><span>(</span> <span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>tabs</span><span class='PREPOSTFIXOP'>++</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='outdent()'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>outdent</span><span class='PARAMETERS inline' name=''><span>(</span> <span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>tabs</span><span class='INFIXOP'>-</span><span class='INFIXOP'>-</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='in(String)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>in</span><span class='PARAMETERS inline' name='String'><span>(</span> <span class='PARAMETER inline' name='String'><span class='TYPE'>String</span> <span class='VARIABLE'>aString</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='inprint'><span class='METHODCALL'>inprint</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>aString</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='out(String)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>out</span><span class='PARAMETERS inline' name='String'><span>(</span> <span class='PARAMETER inline' name='String'><span class='TYPE'>String</span> <span class='VARIABLE'>aString</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='outprint'><span class='METHODCALL'>outprint</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>aString</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='outprint(String)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>outprint</span><span class='PARAMETERS inline' name='String'><span>(</span> <span class='PARAMETER inline' name='String'><span class='TYPE'>String</span> <span class='VARIABLE'>aString</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='outdent'><span class='METHODCALL'>outdent</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>aString</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='METHOD' name='printf(String)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>printf</span><span class='PARAMETERS inline' name='String'><span>(</span> <span class='PARAMETER inline' name='String'><span class='TYPE'>String</span> <span class='VARIABLE'>aString</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>for</span> <span class='EXPRESSION' name=''><span>(</span> <span class='CLAUSE' name=''><span class='TYPE'>int</span> <span class='VARIABLE'>i</span><span class='ASSIGNMENTOP'>=</span><span class='INTEGER'>0</span><span class='STOP'>;</span> </span><span class='CLAUSE' name=''><span class='TYPE'>i</span> <span class='INFIXOP'>&lt;</span> <span class='VARIABLE'>tabs</span><span class='STOP'>;</span> </span><span class='CLAUSE' name=''><span class='NAME'>i</span><span class='PREPOSTFIXOP'>++</span> </span><span>)</span> </span><span class='METHODCALL inline' name='writeout'><span class='METHODCALL'>writeout</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"\t"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='writeout'><span class='METHODCALL'>writeout</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>aString</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='inprint(String)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>inprint</span><span class='PARAMETERS inline' name='String'><span>(</span> <span class='PARAMETER inline' name='String'><span class='TYPE'>String</span> <span class='VARIABLE'>aString</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>aString</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='indent'><span class='METHODCALL'>indent</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span>}</span><span class='NEWLINE'>
+</span></span></span></span></pre>
+
+</html>

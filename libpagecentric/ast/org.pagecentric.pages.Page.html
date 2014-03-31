@@ -1,0 +1,313 @@
+<html>
+<head>
+<link rel='stylesheet' type='text/css' href='/Users/daniel/Software/bin/../Libraries/Platforms/Astral/0.x/java2html/bin/../share/css/java.css'>
+</head>
+<body>
+<pre>
+
+<span class='FILE' name='/Volumes/VM/Projects/PageCentric/Source/PageCentric/1.3.0/libpagecentric/source/java/org/pagecentric/pages/Page.java'><span class='PACKAGE' name=''><span class='KEYWORD'>package</span> <span class='NAME'>org</span><span class='SELECTOR'>.</span><span class='NAME'>pagecentric</span><span class='SELECTOR'>.</span><span class='NAME'>pages</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='IMPORT' name=''><span class='KEYWORD'>import</span> <span class='NAME'>org</span><span class='SELECTOR'>.</span><span class='NAME'>pagecentric</span><span class='SELECTOR'>.</span><span class='NAME'>util</span><span class='SELECTOR'>.</span><span class='INFIXOP'>*</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='IMPORT' name=''><span class='KEYWORD'>import</span> <span class='NAME'>java</span><span class='SELECTOR'>.</span><span class='NAME'>io</span><span class='SELECTOR'>.</span><span class='INFIXOP'>*</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='IMPORT' name=''><span class='KEYWORD'>import</span> <span class='NAME'>java</span><span class='SELECTOR'>.</span><span class='NAME'>util</span><span class='SELECTOR'>.</span><span class='INFIXOP'>*</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='CLASS' name=''><span class='MODIFIER'>public</span> <span class='KEYWORD'>class</span> <span class='CLASSNAME'>Page</span><span class='NEWLINE'>
+</span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>printer</span> <span class='VARIABLE'>out</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>printer</span> <span class='VARIABLE'>debug</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='MODIFIER'>static</span> <span class='TYPE'>HTTPContext</span> <span class='VARIABLE'>context</span> <span class='ASSIGNMENTOP'>=</span> <span class='KEYWORD'>new</span> <span class='METHODCALL inline' name='HTTPContext'><span class='CONSTRUCTOR'>HTTPContext</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>String</span> <span class='VARIABLE'>pageDescription</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>String</span> <span class='VARIABLE'>pageKeywords</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>String</span> <span class='VARIABLE'>pageTitle</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>String</span> <span class='VARIABLE'>pageTemplate</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>String</span> <span class='VARIABLE'>pagePath</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='MEMBER' name=''><span class='MODIFIER'>private</span> <span class='TYPE'>String</span> <span class='VARIABLE'>pageID</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='METHOD' name='Page()'><span class='MODIFIER'>public</span> <span class='METHODNAME'>Page</span><span class='PARAMETERS inline' name=''><span>(</span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>out</span> <span class='ASSIGNMENTOP'>=</span> <span class='KEYWORD'>new</span> <span class='METHODCALL inline' name='printer'><span class='CONSTRUCTOR'>printer</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>System</span><span class='SELECTOR'>.</span><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>debug</span> <span class='ASSIGNMENTOP'>=</span> <span class='KEYWORD'>new</span> <span class='METHODCALL inline' name='printer'><span class='CONSTRUCTOR'>printer</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>System</span><span class='SELECTOR'>.</span><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='getRequest(String)'><span class='MODIFIER'>public</span> <span class='TYPE'>String</span> <span class='METHODNAME'>getRequest</span><span class='PARAMETERS inline' name='String'><span>(</span> <span class='PARAMETER inline' name='String'><span class='TYPE'>String</span> <span class='VARIABLE'>key</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='DECLARATION' name=''><span class='TAB'>	</span><span class='TYPE'>dictionary</span> <span class='VARIABLE'>request</span> <span class='ASSIGNMENTOP'>=</span> <span class='NAME'>context</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='getRequest'><span class='METHODCALL'>getRequest</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>if</span> <span class='EXPRESSION' name=''><span>(</span> <span class='CLAUSE' name=''><span class='NAME'>request</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='contains'><span class='METHODCALL'>contains</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>key</span> </span><span>)</span> </span></span></span><span>)</span><span class='NEWLINE'>
+</span></span><span class='TAB'>	</span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='KEYWORD'>return</span> <span class='NAME'>request</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='get'><span class='METHODCALL'>get</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>key</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>else</span><span class='NEWLINE'>
+</span><span class='TAB'>	</span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='KEYWORD'>return</span> <span class='KEYWORD'>new</span> <span class='METHODCALL inline' name='String'><span class='CONSTRUCTOR'>String</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='getPageID()'><span class='MODIFIER'>public</span> <span class='TYPE'>String</span> <span class='METHODNAME'>getPageID</span><span class='PARAMETERS inline' name=''><span>(</span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>return</span> <span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>pageID</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='getPagePath()'><span class='MODIFIER'>public</span> <span class='TYPE'>String</span> <span class='METHODNAME'>getPagePath</span><span class='PARAMETERS inline' name=''><span>(</span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>return</span> <span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>pagePath</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='getPageTemplate()'><span class='MODIFIER'>public</span> <span class='TYPE'>String</span> <span class='METHODNAME'>getPageTemplate</span><span class='PARAMETERS inline' name=''><span>(</span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>return</span> <span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>pageTemplate</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='getPageDescription()'><span class='MODIFIER'>public</span> <span class='TYPE'>String</span> <span class='METHODNAME'>getPageDescription</span><span class='PARAMETERS inline' name=''><span>(</span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>return</span> <span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>pageDescription</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='getPageKeywords()'><span class='MODIFIER'>public</span> <span class='TYPE'>String</span> <span class='METHODNAME'>getPageKeywords</span><span class='PARAMETERS inline' name=''><span>(</span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>return</span> <span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>pageKeywords</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='getPageTitle()'><span class='MODIFIER'>public</span> <span class='TYPE'>String</span> <span class='METHODNAME'>getPageTitle</span><span class='PARAMETERS inline' name=''><span>(</span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>return</span> <span class='EXPRESSION' name=''><span>(</span><span class='CLAUSE' name=''><span class='NAME'>null</span> <span class='INFIXOP'>!=</span> <span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>pageTitle</span></span><span>)</span> </span><span class='SYMBOL'>?</span> <span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>pageTitle</span> <span class='SYMBOL'>:</span> <span class='KEYWORD'>new</span> <span class='METHODCALL inline' name='String'><span class='CONSTRUCTOR'>String</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='METHOD' name='render()'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>render</span><span class='PARAMETERS inline' name=''><span>(</span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='redirect'><span class='METHODCALL'>redirect</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>debug</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='presync'><span class='METHODCALL'>presync</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>debug</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='headers'><span class='METHODCALL'>headers</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='doctype'><span class='METHODCALL'>doctype</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='html'><span class='METHODCALL'>html</span> <span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='KEYWORD'>this</span><span class='SELECTOR'>.</span><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='METHOD' name='redirect(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>redirect</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>debug</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='LINECOMMENT'>//	This method may be overridden to redirect to another page.
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='presync(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>presync</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>debug</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='LINECOMMENT'>//	This method may be overriden.
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='headers(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>headers</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='header'><span class='METHODCALL'>header</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"Content-type: text/html\n\n"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='doctype(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>doctype</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;!DOCTYPE html&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='htmlStart(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>htmlStart</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;html&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='htmlEnd(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>htmlEnd</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;/html&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='headStart(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>headStart</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;head&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='headContent(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>headContent</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='title'><span class='METHODCALL'>title</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='meta'><span class='METHODCALL'>meta</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='stylesheets'><span class='METHODCALL'>stylesheets</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='javascript'><span class='METHODCALL'>javascript</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='headEnd(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>headEnd</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;/head&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='title(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>title</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='DECLARATION' name=''><span class='TAB'>	</span><span class='TYPE'>String</span> <span class='VARIABLE'>title</span> <span class='ASSIGNMENTOP'>=</span> <span class='METHODCALL inline' name='getPageTitle'><span class='METHODCALL'>getPageTitle</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;title&gt;"</span> <span class='INFIXOP'>+</span> <span class='NAME'>title</span> <span class='INFIXOP'>+</span> <span class='DOUBLEQUOTE'>"&lt;/title&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='meta(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>meta</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='LINECOMMENT'>//	This method may be overridden. This is it.
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='html(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>html</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='htmlStart'><span class='METHODCALL'>htmlStart</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='htmlContent'><span class='METHODCALL'>htmlContent</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='htmlEnd'><span class='METHODCALL'>htmlEnd</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='bodyStart(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>bodyStart</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>aPrinter</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>aPrinter</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;body style='overflow-y:scroll;'&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='sync(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>sync</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>debug</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='LINECOMMENT'>//	Override this method.
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='bodyContent(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>bodyContent</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;div&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='METHODCALL inline' name='bodyNavigation'><span class='METHODCALL'>bodyNavigation</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='METHODCALL inline' name='bodyBackground'><span class='METHODCALL'>bodyBackground</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='METHODCALL inline' name='bodyBreadcrumbs'><span class='METHODCALL'>bodyBreadcrumbs</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='METHODCALL inline' name='bodyHeader'><span class='METHODCALL'>bodyHeader</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='METHODCALL inline' name='bodyMiddle'><span class='METHODCALL'>bodyMiddle</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='METHODCALL inline' name='bodyFooter'><span class='METHODCALL'>bodyFooter</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;/div&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='bodyEnd(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>bodyEnd</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;/body&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='bodyNavigation(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>bodyNavigation</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='bodyBackground(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>bodyBackground</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='bodyBreadcrumbs(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>bodyBreadcrumbs</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='bodyHeader(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>bodyHeader</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='bodyMiddle(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>bodyMiddle</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='in'><span class='METHODCALL'>in</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;div id='middle'&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='TAB'>	</span><span class='METHODCALL inline' name='middleContent'><span class='METHODCALL'>middleContent</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='out'><span class='METHODCALL'>out</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;/div&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='bodyFooter(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>bodyFooter</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='DOUBLEQUOTE'>"&lt;/body&gt;"</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='htmlContent(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>htmlContent</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='headStart'><span class='METHODCALL'>headStart</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='headContent'><span class='METHODCALL'>headContent</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='headEnd'><span class='METHODCALL'>headEnd</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='sync'><span class='METHODCALL'>sync</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>debug</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>debug</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='writeBuffer'><span class='METHODCALL'>writeBuffer</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='bodyStart'><span class='METHODCALL'>bodyStart</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='bodyContent'><span class='METHODCALL'>bodyContent</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='METHODCALL inline' name='bodyEnd'><span class='METHODCALL'>bodyEnd</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>out</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='stylesheets(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>stylesheets</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='javascript(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>javascript</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='header(String)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>header</span><span class='PARAMETERS inline' name='String'><span>(</span> <span class='PARAMETER inline' name='String'><span class='TYPE'>String</span> <span class='VARIABLE'>aString</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>System</span><span class='SELECTOR'>.</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span> <span class='ARGUMENT inline' name=''><span class='NAME'>aString</span> </span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>System</span><span class='SELECTOR'>.</span><span class='NAME'>out</span><span class='SELECTOR'>.</span><span class='METHODCALL inline' name='println'><span class='METHODCALL'>println</span><span class='ARGUMENTS inline' name=''><span>(</span><span>)</span></span></span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='setTitle(String)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>setTitle</span><span class='PARAMETERS inline' name='String'><span>(</span> <span class='PARAMETER inline' name='String'><span class='TYPE'>String</span> <span class='VARIABLE'>title</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='NAME'>title</span> <span class='ASSIGNMENTOP'>=</span> <span class='NAME'>title</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='middleContent(printer)'><span class='MODIFIER'>public</span> <span class='TYPE'>void</span> <span class='METHODNAME'>middleContent</span><span class='PARAMETERS inline' name='printer'><span>(</span> <span class='PARAMETER inline' name='printer'><span class='TYPE'>printer</span> <span class='VARIABLE'>out</span> </span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='METHOD' name='getContext()'><span class='MODIFIER'>public</span> <span class='MODIFIER'>static</span> <span class='TYPE'>HTTPContext</span> <span class='METHODNAME'>getContext</span><span class='PARAMETERS inline' name=''><span>(</span><span>)</span><span class='NEWLINE'>
+</span></span><span class='BLOCK' name=''><span>{</span><span class='NEWLINE'>
+</span><span class='STATEMENT' name=''><span class='TAB'>	</span><span class='KEYWORD'>return</span> <span class='NAME'>context</span><span class='STOP'>;</span><span class='NEWLINE'>
+</span></span><span>}</span><span class='NEWLINE'>
+</span></span></span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span class='NEWLINE'>
+</span><span>}</span><span class='NEWLINE'>
+</span></span></span></span></pre>
+
+</html>

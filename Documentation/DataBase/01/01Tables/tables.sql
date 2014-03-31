@@ -1,0 +1,145 @@
+CREATE TABLE users_uids (
+
+USER                            INT(11)  NOT NULL AUTO_INCREMENT,
+type                        VARCHAR(20)  NOT NULL DEFAULT '',
+
+PRIMARY KEY (USER)
+);
+CREATE TABLE users (
+
+USER                            INT(11)  NOT NULL,
+email                       VARCHAR(99)  NOT NULL,
+email_provisional           VARCHAR(99)  NOT NULL DEFAULT '',
+created                    DATETIME      NOT NULL,
+last_login                 DATETIME      NOT NULL,
+invalid_logins                  INT(11)  NOT NULL,
+
+user_salt                       INT(11)  NOT NULL,
+user_hash                   VARCHAR(16)  NOT NULL,
+password_hash               VARCHAR(16)  NOT NULL,
+user_status                 VARCHAR(20)  NOT NULL,
+sent                           BOOL      NOT NULL,
+
+given_name                  VARCHAR(50)  NOT NULL,
+family_name                 VARCHAR(50)  NOT NULL,
+
+PRIMARY KEY (email), UNIQUE KEY (USER)
+);
+CREATE TABLE users_requested_invites (
+
+REQUEST                             INT(11)  AUTO_INCREMENT,
+email                           VARCHAR(99)  NOT NULL DEFAULT '',
+time_of_request                DATETIME,
+invite_sent                     BOOLEAN,
+
+PRIMARY KEY (REQUEST)
+);
+CREATE TABLE users_activations (
+
+USER                                INT(11)  NOT NULL,
+timestamp                     TIMESTAMP      NOT NULL,
+token                           VARCHAR(64)  NOT NULL,
+
+PRIMARY KEY (USER)
+);
+CREATE TABLE users_reset_passwords
+(
+USER                                INT(11)  NOT NULL,
+timestamp                     TIMESTAMP      NOT NULL,
+token                           VARCHAR(64)  NOT NULL,
+sent                          TIMESTAMP      NOT NULL,
+
+PRIMARY KEY (USER)
+);
+CREATE TABLE users_sessions
+(
+sid                             VARCHAR(32)  NOT NULL,
+email                           VARCHAR(99)  NOT NULL,
+created                       TIMESTAMP      NOT NULL,
+updated                       TIMESTAMP      NOT NULL,
+expiry                              INT(64)  NOT NULL,
+
+PRIMARY KEY (sid)
+);
+CREATE TABLE users_alternate_emails (
+
+USER                            INT(11)  NOT NULL AUTO_INCREMENT,
+email                       VARCHAR(99)  NOT NULL DEFAULT '',
+token                       VARCHAR(64)  NOT NULL,
+
+PRIMARY KEY (USER,email)
+);
+CREATE TABLE users_termination_schedule
+(
+
+USER                            INT(11)  NOT NULL,
+mark                       DATETIME      NOT NULL,
+time_of_termination        DATETIME      NOT NULL,
+
+PRIMARY KEY (USER)
+);
+CREATE TABLE users_deleted
+(
+USER         INT(11),
+DELETED_USER INT(11)
+);
+CREATE TABLE payments (
+
+USER                            INT(11),
+created                    DATETIME,
+customer_id                    CHAR(16),
+final_four                     CHAR(4),
+number                         TEXT,
+cvv                            TEXT,
+month                          TEXT,
+year                           TEXT,
+
+PRIMARY KEY (USER)
+);
+CREATE TABLE payments_remove_cards (
+
+USER                            INT(11),
+customer_id                    CHAR(16),
+
+PRIMARY KEY (USER)
+);
+CREATE TABLE payments_plans (
+
+PLAN                            INT(11) AUTO_INCREMENT,
+USER                            INT(11),
+switched                   DATETIME,
+plan_id                        CHAR(32),
+cost                        DECIMAL(13,2),
+subscription_id                CHAR(16) NOT NULL DEFAULT '',
+last_subscription_id           CHAR(16) NOT NULL DEFAULT '',
+
+PRIMARY KEY (PLAN), UNIQUE KEY (USER,switched)
+);
+CREATE TABLE payments_details (
+
+USER                            INT(11),
+given_name                     CHAR(99),
+family_name                    CHAR(99),
+address                        CHAR(99),
+address2                       CHAR(99),
+suburb                         CHAR(99),
+state                          CHAR(99),
+country                        CHAR(99),
+postcode                       CHAR(5),
+
+PRIMARY KEY (USER)
+);
+CREATE TABLE payments_invoices (
+
+INVOICE                         INT(11) AUTO_INCREMENT,
+USER                            INT(11),
+raised                         DATE,
+currency                       CHAR(16),
+amount                      DECIMAL(13,2),
+gst                         DECIMAL(13,2),
+total                       DECIMAL(13,2),
+paid                        DECIMAL(13,2),
+transacted                 DATETIME,
+
+PRIMARY KEY (INVOICE), UNIQUE KEY (USER,raised)
+);

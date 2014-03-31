@@ -1,0 +1,36 @@
+..		Module: Utility
+
+...			Stored Procedures
+
+....			Get Jth
+
+~sp~
+DROP   FUNCTION Get_Jth;
+DELIMITER //
+CREATE FUNCTION GET_JTH
+(
+  $Text                   TEXT,
+  $Delimiter              CHAR(10),
+  $I                      INT(11)
+)
+RETURNS TEXT
+BEGIN
+
+DECLARE _tmp      TEXT DEFAULT '';
+DECLARE _test     TEXT DEFAULT '';
+
+SELECT SUBSTRING_INDEX( $Text, $Delimiter, $I )     INTO _tmp;
+SELECT SUBSTRING_INDEX( $Text, $Delimiter, $I - 1 ) INTO _test;
+
+IF _tmp = _test THEN
+    SET _tmp = "";
+ELSE
+    SELECT SUBSTRING_INDEX( _tmp, $Delimiter, -1 ) INTO _tmp;
+END IF;
+
+RETURN _tmp;
+
+END
+//
+DELIMITER ;
+~

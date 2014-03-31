@@ -1,0 +1,1024 @@
+..		Module: Payments
+
+
+
+...			Table: payments customers
+
+~tables~
+DROP   TABLE payments_customers;
+CREATE TABLE payments_customers (
+
+USER                            INT(11),
+created                    DATETIME,
+customer_id                    CHAR(16) NOT NULL DEFAULT '',
+
+PRIMARY KEY (USER)
+);
+~
+
+
+
+...			Views
+
+~views~
+DROP   VIEW view_payments_customers_uncreated;
+CREATE VIEW view_payments_customers_uncreated AS
+  SELECT USER, customer_id FROM users
+  LEFT JOIN payments_customers USING (USER)
+  WHERE customer_id IS NULL;
+~
+
+
+
+...			Stored Procedures
+
+~sp~
+DROP   PROCEDURE Payments_Customers_Uncreated;
+DELIMITER //
+CREATE PROCEDURE Payments_Customers_Uncreated
+()
+BEGIN
+
+IF Is_Local_Caller() THEN
+
+  SELECT * FROM view_payments_customers_uncreated;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+
+~sp~
+DROP   PROCEDURE Payments_Customers_Replace;
+DELIMITER //
+CREATE PROCEDURE Payments_Customers_Replace
+(
+  $USER                             INT(11),
+  $customer_id                     CHAR(16)
+)
+BEGIN
+
+DECLARE $USER INT;
+
+IF Is_Local_Caller() THEN
+
+  REPLACE INTO payments_customers
+    (  USER,  created,  customer_id )
+  VALUES
+    ( $USER,    NOW(), $customer_id );
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Customers_Delete;
+DELIMITER //
+CREATE PROCEDURE Payments_Customers_Delete
+(
+  $sid                             CHAR(64),
+  $USER                             INT(11)
+)
+BEGIN
+
+DECLARE $customer_id CHAR(16);
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+
+  SELECT customer_id INTO $customer_id FROM payments WHERE USER=$USER;
+  
+  REPLACE INTO payments_remove_cards
+    (  USER,  customer_id )
+  VALUES
+    ( $USER, $customer_id );
+
+  DELETE FROM payments_customers WHERE USER=$USER;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Customers_Retrieve_By_User;
+DELIMITER //
+CREATE PROCEDURE Payments_Customers_Retrieve_By_User
+(
+  $sid                             CHAR(64),
+  $USER                             INT(11)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+
+  SELECT * FROM payments_customers WHERE USER=$USER;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+
+
+...			Table: Payments plans
+
+~tables~
+DROP   TABLE payments_plans;
+CREATE TABLE payments_plans
+(
+PLAN                            INT(11) AUTO_INCREMENT,
+USER                            INT(11),
+switched                   DATETIME,
+subscription_id                CHAR(16) NOT NULL DEFAULT '',
+plan_id                        CHAR(32),
+cost                        DECIMAL(13,2),
+subscribed                 DATETIME     NOT NULL DEFAULT 0,
+
+PRIMARY KEY (PLAN), UNIQUE KEY (USER,switched)
+);
+~
+
+
+
+....			Stored Procedures
+
+~sp~
+DROP   PROCEDURE Payments_Plans_Replace;
+DELIMITER //
+CREATE PROCEDURE Payments_Plans_Replace
+(
+  $sid                             CHAR(64),
+  $USER                             INT(11),
+  $plan_id                         CHAR(32),
+  $cost                         DECIMAL(13,2)
+)
+BEGIN
+
+DECLARE $switched DATETIME;
+DECLARE $subscription_id CHAR(16);
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+
+  SET $switched        = NOW();
+  SET $subscription_id = '';
+
+  SELECT subscription_id INTO $subscription_id
+  FROM payments_plans
+  WHERE USER=$USER AND NOT subscription_id = "" ORDER BY PLAN DESC LIMIT 1;
+
+  REPLACE INTO payments_plans
+    (  USER,  switched,  plan_id,  cost,  subscription_id )
+  VALUES
+    ( $USER, $switched, $plan_id, $cost, $subscription_id );
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Plans_Retrieve;
+DELIMITER //
+CREATE PROCEDURE Payments_Plans_Retrieve
+(
+  $sid                             CHAR(32),
+  $USER                             INT(11)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+
+  SELECT * FROM payments_plans WHERE USER=$USER
+  ORDER BY switched DESC
+  LIMIT 1;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Plans_Retrieve_Today;
+DELIMITER //
+CREATE PROCEDURE Payments_Plans_Retrieve_Today
+()
+BEGIN
+
+SELECT * FROM
+  (SELECT * FROM payments_plans ORDER BY switched DESC) AS S1
+LEFT JOIN
+  (SELECT * FROM payments_invoices WHERE raised=DATE(NOW())) AS S2 USING (USER)
+WHERE
+  DAY(switched) = DAY(NOW())
+GROUP BY USER;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Plans_Update_Subscription_Id;
+DELIMITER //
+CREATE PROCEDURE Payments_Plans_Update_Subscription_Id
+(
+   $PLAN                             INT(11),
+   $subscription_id                 CHAR(16)
+)
+BEGIN
+
+UPDATE payments_plans
+SET subscription_id=$subscription_id, subscribed=NOW()
+WHERE PLAN=$PLAN;
+
+END
+//
+DELIMITER ;
+~
+
+
+
+...			Table: Payments purchases
+
+~tables~
+DROP   TABLE payments_purchases;
+CREATE TABLE payments_purchases (
+
+PURCHASE                        INT(11) AUTO_INCREMENT,
+USER                            INT(11),
+purchased                  DATETIME,
+description                    CHAR(99),
+cost                        DECIMAL(13,2),
+transaction_id                 CHAR(16),
+transacted                 DATETIME     NOT NULL DEFAULT 0,
+
+PRIMARY KEY (PURCHASE)
+);
+~
+
+
+
+....			Stored Procedures
+
+~sp~
+DROP   PROCEDURE Payments_Purchases_Insert;
+DELIMITER //
+CREATE PROCEDURE Payments_Purchases_Insert
+(
+  $sid                             CHAR(32),
+  $USER                             INT(11),
+  $description                     CHAR(99),
+  $cost                         DECIMAL(13,2)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF "" != @USER THEN
+
+  INSERT INTO payments_purchases
+    (  USER,  purchased,  description,  cost )
+  VALUES
+    ( $USER,      NOW(), $description, $cost );
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Purchases_Retrieve_Unprocessed;
+DELIMITER //
+CREATE PROCEDURE Payments_Purchases_Retrieve_Unprocessed
+()
+BEGIN
+
+IF Is_Local_Caller() THEN
+
+  SELECT *
+  FROM      payments_purchases
+  LEFT JOIN view_payments_credit_cards USING (USER)
+  WHERE NOT processed=0 AND transacted=0;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Purchases_Transacted;
+DELIMITER //
+CREATE PROCEDURE Payments_Purchases_Transacted
+(
+  $PURCHASE               INT(11),
+  $transaction_id        CHAR(16)
+)
+BEGIN
+
+IF Is_Local_Caller() THEN
+
+  UPDATE payments_purchases
+  SET transaction_id=$transaction_id, transacted=NOW()
+  WHERE PURCHASE=$PURCHASE;
+
+ELSE
+
+  SELECT "You must call this method from local host" AS msg;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+...			Table: payments credit cards
+
+~tables~
+DROP   TABLE payments_credit_cards;
+CREATE TABLE payments_credit_cards (
+
+USER                            INT(11),
+provided                   DATETIME,
+final_four                     CHAR(4),
+number                         TEXT,
+cvv                            TEXT,
+month                          TEXT,
+year                           TEXT,
+token                          CHAR(16),
+processed                  DATETIME NOT NULL DEFAULT 0,
+
+PRIMARY KEY (USER)
+);
+~
+
+....				Views: view payments credit cards
+
+~views~
+DROP   VIEW view_payments_credit_cards;
+CREATE VIEW view_payments_credit_cards AS
+  SELECT provided, final_four, token, processed, payments_customers.*
+  FROM payments_credit_cards
+  LEFT JOIN payments_customers USING (USER);
+~
+
+~views~
+DROP   VIEW view_payments_credit_cards_unsynced;
+CREATE VIEW view_payments_credit_cards_unsynced AS
+  SELECT *
+  FROM payments_credit_cards
+  LEFT JOIN payments_customers USING (USER)
+  WHERE processed=0;
+~
+
+
+
+....				Stored Procedures
+
+~sp~
+DROP   PROCEDURE Payments_Credit_Cards_Replace;
+DELIMITER //
+CREATE PROCEDURE Payments_Credit_Cards_Replace
+(
+  $sid                             CHAR(32),
+  $USER                             INT(11),
+  $final_four                      CHAR(4),
+  $number                          TEXT,
+  $cvv                             TEXT,
+  $month                           TEXT,
+  $year                            TEXT
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+
+  SELECT token INTO @token FROM payments_credit_cards WHERE USER=$USER;
+
+  IF "" != @token THEN
+  
+    CALL Payments_Credit_Cards_Delete( $sid, $USER );
+  
+  END IF;
+
+  SET @provided = NOW();
+
+  SELECT provided INTO @provided FROM payments_credit_cards WHERE USER=$USER;
+
+  REPLACE INTO payments_credit_cards
+    (  USER,  provided,  final_four,  number,  cvv,  month,  year,  token,  processed )
+  VALUES
+    ( $USER, @provided, $final_four, $number, $cvv, $month, $year,     '',          0 );
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Credit_Cards_Delete;
+DELIMITER //
+CREATE PROCEDURE Payments_Credit_Cards_Delete
+(
+  $sid                             CHAR(32),
+  $USER                             INT(11)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+
+  SELECT customer_id INTO @customer_id FROM view_payments_credit_cards WHERE USER=$USER;
+  
+  REPLACE INTO payments_remove_cards
+    (  USER,  customer_id )
+  VALUES
+    ( $USER, @customer_id );
+
+  DELETE FROM payments_credit_cards
+  WHERE USER=$USER;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Credit_Cards_Retrieve_By_User;
+DELIMITER //
+CREATE PROCEDURE Payments_Credit_Cards_Retrieve_By_User
+(
+  $sid                             CHAR(32),
+  $USER                             INT(11)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+
+  SELECT * FROM payments_credit_cards WHERE USER=$USER;
+
+ELSE
+
+  SELECT token FROM payments_credit_cards WHERE USER=$USER;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Credit_Cards_Retrieve_Unsynced;
+DELIMITER //
+CREATE PROCEDURE Payments_Credit_Cards_Retrieve_Unsynced
+()
+BEGIN
+
+SET @USER = USER();
+
+IF 'public@localhost' = @USER OR 'root@localhost' = @USER THEN
+
+  SELECT * FROM view_payments_credit_cards_unsynced;
+
+ELSE
+
+  SELECT "You must call this method from local host" AS msg;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Credit_Cards_Synced;
+DELIMITER //
+CREATE PROCEDURE Payments_Credit_Cards_Synced
+(
+  $USER                           INT(11),
+  $token                         CHAR(16)
+)
+BEGIN
+
+UPDATE payments_credit_cards
+SET number='', cvv='', month='', year='', token=$token, processed=NOW()
+WHERE USER=$USER;
+
+END
+//
+DELIMITER ;
+~
+
+
+
+...			Subscriptions
+
+~sp~
+DROP   PROCEDURE Payments_Plans_Retrieve_Unsubscribed;
+DELIMITER //
+CREATE PROCEDURE Payments_Plans_Retrieve_Unsubscribed
+()
+BEGIN
+
+SET @USER = USER();
+
+IF 'public@localhost' = @USER OR 'root@localhost' = @USER THEN
+
+  SELECT view_payments_credit_cards.*, S2.*
+  FROM view_payments_credit_cards
+  LEFT JOIN
+  (
+    SELECT * FROM
+	(
+	  SELECT * FROM payments_plans ORDER BY PLAN DESC
+	) AS S1
+	GROUP BY USER
+  ) AS S2
+  USING (USER)
+  WHERE NOT processed=0 AND subscribed=0;
+
+ELSE
+
+  SELECT "You must call this method from local host" AS msg;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+
+
+...			Table: payments transactions
+
+~tables~
+DROP   TABLE payments_transactions;
+CREATE TABLE payments_transactions (
+
+TRANSACTION                     INT(11) AUTO_INCREMENT,
+USER                            INT(11),
+transaction_id                 CHAR(16),
+description                    CHAR(99),
+
+date                       DATETIME,
+type                           CHAR(50),
+status                         CHAR(50),
+payment_method_token           CHAR(16),
+amount                      DECIMAL(13,2),
+
+PRIMARY KEY (TRANSACTION), UNIQUE KEY (USER,transaction_id)
+);
+~
+
+
+
+....				Stored Procedures
+
+~sp~
+DROP   PROCEDURE Payments_Transactions_Replace;
+DELIMITER //
+CREATE PROCEDURE Payments_Transactions_Replace
+(
+  $USER                             INT(11),
+  $transaction_id                  CHAR(16),
+  $description                     CHAR(99)
+)
+BEGIN
+
+SET @USER = USER();
+
+IF 'public@localhost' = @USER OR 'root@localhost' = @USER THEN
+
+  REPLACE INTO payments_transactions
+    (  USER,  transaction_id,  description )
+  VALUES
+	( $USER, $transaction_id, $description );
+
+ELSE
+
+  SELECT "You must call this method from local host" AS msg;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+
+~sp~
+DROP   PROCEDURE Payments_Transactions_Retrieve_Unfinished;
+DELIMITER //
+CREATE PROCEDURE Payments_Transactions_Retrieve_Unfinished
+()
+BEGIN
+
+SET @USER = USER();
+
+IF 'public@localhost' = @USER OR 'root@localhost' = @USER THEN
+
+  SELECT * FROM payments_transactions WHERE date IS NULL;
+
+ELSE
+
+  SELECT "You must call this method from local host" AS msg;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Transactions_Retrieve_Submitted;
+DELIMITER //
+CREATE PROCEDURE Payments_Transactions_Retrieve_Submitted
+()
+BEGIN
+
+SET @USER = USER();
+
+IF 'public@localhost' = @USER OR 'root@localhost' = @USER THEN
+
+  SELECT * FROM payments_transactions WHERE status='submitted_for_settlement';
+
+ELSE
+
+  SELECT "You must call this method from local host" AS msg;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Transactions_Update_Details;
+DELIMITER //
+CREATE PROCEDURE Payments_Transactions_Update_Details
+(
+  $TRANSACTION                      INT(11),
+  $date                        DATETIME,
+  $type                            CHAR(50),
+  $status                          CHAR(50),
+  $payment_method_token            CHAR(16),
+  $amount                       DECIMAL(13,2)
+)
+BEGIN
+
+SET @USER = USER();
+
+IF 'public@localhost' = @USER OR 'root@localhost' = @USER THEN
+
+  UPDATE payments_transactions
+  SET
+                    date=$date,
+	                type=$type,
+	              status=$status,
+	payment_method_token=$payment_method_token,
+	              amount=$amount
+  WHERE
+    TRANSACTION=$TRANSACTION;
+
+ELSE
+
+  SELECT "You must call this method from local host" AS msg;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Transactions_Retrieve_By_User;
+DELIMITER //
+CREATE PROCEDURE Payments_Transactions_Retrieve_By_User
+(
+  $sid                             CHAR(32),
+  $USER                             INT(11)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+
+SELECT * FROM payments_transactions WHERE USER=$USER;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+...			Table: payments remove cards
+
+~tables~
+DROP   TABLE payments_remove_cards;
+CREATE TABLE payments_remove_cards (
+
+USER                            INT(11),
+customer_id                    CHAR(16),
+
+PRIMARY KEY (USER)
+);
+~
+
+~sp~
+DROP   PROCEDURE Payments_Remove_Cards_Retrieve;
+DELIMITER //
+CREATE PROCEDURE Payments_Remove_Cards_Retrieve
+()
+BEGIN
+
+SELECT * FROM payments_remove_cards;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Remove_Cards_Removed;
+DELIMITER //
+CREATE PROCEDURE Payments_Remove_Cards_Removed
+(
+$USER                           INT(11),
+$customer_id                   CHAR(16)
+)
+BEGIN
+
+DELETE FROM payments_remove_cards WHERE USER=$USER AND customer_id=$customer_id;
+
+END
+//
+DELIMITER ;
+~
+
+
+
+
+
+...			Table: Payments details
+
+~tables~
+DROP   TABLE payments_details;
+CREATE TABLE payments_details (
+
+USER                            INT(11),
+given_name                     CHAR(99),
+family_name                    CHAR(99),
+address                        CHAR(99),
+address2                       CHAR(99),
+suburb                         CHAR(99),
+state                          CHAR(99),
+country                        CHAR(99),
+postcode                       CHAR(5),
+
+PRIMARY KEY (USER)
+);
+~
+
+~sp~
+DROP   PROCEDURE Payments_Details_Replace;
+DELIMITER //
+CREATE PROCEDURE Payments_Details_Replace
+(
+  $sid                          CHAR(32),
+  $USER                          INT(11),
+  $given_name                   CHAR(99),
+  $family_name                  CHAR(99),
+  $address                      CHAR(99),
+  $address2                     CHAR(99),
+  $suburb                       CHAR(99),
+  $state                        CHAR(99),
+  $country                      CHAR(99),
+  $postcode                     CHAR(5)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+
+  REPLACE INTO payments_details
+    (  USER,  given_name,  family_name,  address,  address2,  suburb,  state,  country,  postcode )
+  VALUES
+    ( $USER, $given_name, $family_name, $address, $address2, $suburb, $state, $country, $postcode );
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Details_Retrieve;
+DELIMITER //
+CREATE PROCEDURE Payments_Details_Retrieve
+(
+  $sid                             CHAR(32),
+  $USER                             INT(11)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+
+  SELECT * FROM payments_details WHERE USER=$USER;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+
+
+...			Table: Payments invoices
+
+~tables~
+DROP   TABLE payments_invoices;
+CREATE TABLE payments_invoices (
+
+INVOICE                         INT(11) AUTO_INCREMENT,
+USER                            INT(11),
+raised                         DATE,
+currency                       CHAR(16),
+amount                      DECIMAL(13,2),
+gst                         DECIMAL(13,2),
+total                       DECIMAL(13,2),
+paid                        DECIMAL(13,2),
+transacted                 DATETIME,
+
+PRIMARY KEY (INVOICE), UNIQUE KEY (USER,raised)
+);
+~
+
+~sp~
+DROP   PROCEDURE Payments_Invoices_Replace;
+DELIMITER //
+CREATE PROCEDURE Payments_Invoices_Replace
+(
+  $INVOICE                       INT(11),
+  $USER                          INT(11),
+  $currency                     CHAR(16),
+  $amount                    DECIMAL(13,2),
+  $gst                       DECIMAL(13,2),
+  $total                     DECIMAL(13,2),
+  $paid                      DECIMAL(13,2),
+  $transacted                DATETIME
+)
+BEGIN
+
+REPLACE INTO payments_invoices
+(  INVOICE,  USER,  raised,  currency,  amount,  gst,  total,  paid,  transacted )
+VALUES
+( $INVOICE, $USER,   NOW(), $currency, $amount, $gst, $total, $paid, $transacted );
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Invoices_Retrieve;
+DELIMITER //
+CREATE PROCEDURE Payments_Invoices_Retrieve
+()
+BEGIN
+
+SELECT * FROM payments_invoices WHERE $total > $paid;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Payments_Invoices_Retrieve_By_User;
+DELIMITER //
+CREATE PROCEDURE Payments_Invoices_Retrieve_By_User
+(
+  $sid                             CHAR(32),
+  $USER                             INT(11)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+IF $USER = @USER THEN
+  SELECT * FROM payments_invoices WHERE USER=$USER;
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+
+

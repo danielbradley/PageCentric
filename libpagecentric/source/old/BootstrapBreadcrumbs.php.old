@@ -1,0 +1,36 @@
+<?php
+//	Copyright (c) 2009, 2010 Daniel Robert Bradley. All rights reserved.
+//	This software is distributed under the terms of the GNU Lesser General Public License version 2.1
+?>
+<?php
+
+include_once( LIBOPENPAGE . "/HTML/Breadcrumbs.php" );
+
+class BootstrapBreadcrumbs extends Breadcrumbs
+{
+	function render( $out )
+	{
+		$arrow = $this->getArrow();
+		
+		$out->inprint( "<ul class='breadcrumb'>" );
+		{
+			$max = count( $this->pages );
+			
+			for ( $i=0; $i < $max; $i++ )
+			{
+				$label = $this->labels[$i];
+
+				if ( $i < ($max - 1) )
+				{
+					$url = $this->urls[$i];
+					$out->println( "<li><a href='$url'>" . $label . "</a> <span class='divider'>/</span></li>" );
+				} else {
+					$out->println( "<li class='active'>" . $label . "</li>" );
+				}
+			}
+		}
+		$out->outprint( "</ul>" );
+	}
+}
+
+?>
