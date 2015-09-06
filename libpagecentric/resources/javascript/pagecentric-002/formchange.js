@@ -24,7 +24,7 @@ function ( forms )
 
 			//if ( 'formchange' == action )
 			{
-				if ( IE8() )
+				//if ( IE8() )
 				{
 					forms[i].formchange = pagecentric.formchange;
 
@@ -32,10 +32,10 @@ function ( forms )
 					pagecentric.setup.formchange.foreach.input( forms[i].getElementsByTagName( "select"   ) );
 					pagecentric.setup.formchange.foreach.input( forms[i].getElementsByTagName( "textarea" ) );
 				}
-				else
-				{
-					pagecentric.addEventListener( forms[i], "change", pagecentric.formchange );
-				}
+//				else
+//				{
+//					pagecentric.addEventListener( forms[i], "change", pagecentric.formchange );
+//				}
 			}
 		}
 

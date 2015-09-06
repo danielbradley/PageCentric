@@ -17,6 +17,12 @@ class LoginControl extends Control
 //				$this->success();
 			}
 			else
+			if ( "true" == $page->getRequest( "mobile" ) )
+			{
+				$page->showModal( "mobile-login" );
+				$page->debug->println( "<!-- Not authenticated !!! -->" );
+			}
+			else
 			{
 				$page->showModal( "modal-member_login" );
 				$page->debug->println( "<!-- Not authenticated !!! -->" );

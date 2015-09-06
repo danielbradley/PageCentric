@@ -7,7 +7,7 @@ public Form()
 {
 }
 
-public Form( printer out )
+public Form( org.pagecentric.util.printer out )
 {
 }
 

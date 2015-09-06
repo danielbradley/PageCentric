@@ -25,7 +25,7 @@ class DownloadPage extends Page
 
 				header( "Content-Type: $type" );
 				header( "Content-Length: $size" );
-				header( "Content-Disposition: attachment, filename=\"$name\"" );
+				header( "Content-Disposition: attachment; filename=\"$name\"" );
 
 				echo $content;
 				exit;

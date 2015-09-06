@@ -8,11 +8,19 @@ include_once( "pagecentric.objects/SQL.php" );
 
 class Page
 {
-	var $requestURI;
+	var $request;
+	var $out;
+	var $debug;
 	var $viva;
-	var $title;
-	var $modals;
 
+	private $requestURI;
+	private $title;
+	private $modals;
+	private $pageId;
+	private $pagePath;
+	private $browser;
+	private $classes;
+	
     static function initialise_constant( $constant )
     {
         if ( '.php' == substr( $constant, -4 ) )
@@ -31,8 +39,10 @@ class Page
 
 	static function initialise()
 	{
+		$redirect_url = array_key_exists( "REDIRECT_URL", $_SERVER ) ? $_SERVER["REDIRECT_URL"] : "";
+
 		define( "REQUEST_URI",     Page::initialise_constant( $_SERVER["REQUEST_URI"]  ) );
-		define( "REDIRECT_URL",    Page::initialise_constant( $_SERVER["REDIRECT_URL"] ) );
+		define( "REDIRECT_URL",    Page::initialise_constant( $redirect_url            ) );
 		define( "HTTP_USER_AGENT", $_SERVER["HTTP_USER_AGENT"] );
 
 		if ( ! defined( "DEBUG" ) ) define( "DEBUG", false );
@@ -44,16 +54,82 @@ class Page
 		$this->debug = ( DEBUG ) ? new Printer() : new NullPrinter();
 		$this->debug->startBuffering();
 
+		$this->checkDB();
+
+		$this->classes  = "";
 		$this->request  = Input::FilterInput( $_REQUEST, $this->debug );
 		$this->pageId   = Page::_generatePageId();
 		$this->pagePath = Page::generatePagePath();
-		$this->browser  = Page::determineBrowser( HTTP_USER_AGENT );
+		$this->browser  = Page::determineBrowser ( HTTP_USER_AGENT );
+		$this->isMobile = Page::determineIfMobile( HTTP_USER_AGENT );
+
+		$this->appendClass( $this->browser );
 
 		$this->viva = new Viva( $this->request, $this->debug );
 		$this->title = "";
 		$this->modals = array();
 
 		$this->isSupportedBrowser();
+
+		//$this->visiting( $this->debug );
+	}
+
+	function checkDB()
+	{
+		return;
+	
+		$this->debug->inprint( "<!-- Checking DB" );
+		{
+			$result = \replicantdb\ReplicantDB::CallFunction( DB, "Users_Exists( 'admin' )", $this->debug );
+			if ( "OK" == $result->status )
+			{
+				if ( $result->value )
+				{
+					$this->debug->println( "Admin account exists" );
+				}
+				else
+				{
+					$this->debug->println( "Admin account does not exist!!!" );
+				}
+			}
+			else
+			{
+				$this->debug->println( "Hostname: " . $result->hostname );
+				$this->debug->println( "Status:   " . $result->status   );
+				$this->debug->println( "Failover: " . $result->failover );
+				$this->debug->println( "Warning:  " . $result->warning  );
+				$this->debug->println( "Message:  " . $result->message  );
+				$this->debug->println( "Error:    " . $result->error    );
+			}
+
+			$result = \replicantdb\ReplicantDB::CallProcedure( DB, "Users_Retrieve_All( '' )", $this->debug );
+			if ( "OK" == $result->status )
+			{
+				if ( is_array( $result->set ) )
+				{
+					$this->debug->println( "Got set" );
+				}
+				else
+				{
+					$this->debug->println( "No set!!!" );
+				}
+			}
+			else
+			{
+				$this->debug->println( "Hostname: " . $result->hostname );
+				$this->debug->println( "Status:   " . $result->status   );
+				$this->debug->println( "Failover: " . $result->failover );
+				$this->debug->println( "Warning:  " . $result->warning  );
+				$this->debug->println( "Message:  " . $result->message  );
+				$this->debug->println( "Error:    " . $result->error    );
+			}
+		}
+		$this->debug->outprint( "-->" );
+	}
+
+	function addDialog( $dialog )
+	{
+		$this->addModal( $dialog );
 	}
 
 	function addModal( $modal )
@@ -61,9 +137,39 @@ class Page
 		$this->modals[] = $modal;
 	}
 
+	function addClass( $cls )
+	{
+		$this->appendClass( $cls );
+	}
+
+	function appendClass( $cls )
+	{
+		$this->classes = $this->classes ? $this->classes . " " . $cls : $cls;
+	}
+
+	function showDialog( $dialog_id )
+	{
+		$this->showModal( $dialog_id );
+	}
+
 	function showModal( $modal_id )
 	{
 		$this->showModal = $modal_id;
+	}
+
+	function getAuthenticationStatus()
+	{
+		return $this->viva->getAuthenticationStatus();
+	}
+
+	function getBrowser()
+	{
+		return $this->browser;
+	}
+
+	function isMobile()
+	{
+		return $this->isMobile;
 	}
 
 	function getUser()
@@ -156,6 +262,11 @@ class Page
 		return $ret;
 	}
 
+	function isReadOnly()
+	{
+		return $this->viva->isReadOnly();
+	}
+
 	function isSupportedBrowser()
 	{
 		$supported = true;
@@ -184,6 +295,29 @@ class Page
 		return $supported;
 	}
 
+	function setCookie( $name, $value, $path = "/", $httpOnly = TRUE )
+	{
+		$http_only = $httpOnly ? "HttpOnly" : "";
+	
+		$cookie = "Set-Cookie: $name=$value" . "; path=$path; $http_only";
+		
+		header( $cookie );
+	}
+
+//	function setJSCookie( $name, $value, $path = "/", $httpOnly = TRUE, $expiry = "" )
+//	{
+//		$cookie = "$name=$value" . "; path=$path";
+//
+//		if ( $expiry   ) $cookie .= "; $expiry";
+//		if ( $httpOnly ) $cookie .= "; HttpOnly";
+//
+//		$this->out->inprint( "<script type='text/javascript'>" );
+//		{
+//			$this->out->println( "document.cookie=$cookie" );
+//		}
+//		$this->out->outprint( "</script>" );
+//	}
+
 	function logout()
 	{
 		$this->viva->logout( $this->debug );
@@ -197,7 +331,7 @@ class Page
 		$this->headers( $this->out );
 		$this->doctype( $this->out );
 		$this->html   ( $this->out );
-		
+
 		$this->releaseDB( $this->debug );
 	}
 	
@@ -306,46 +440,74 @@ class Page
 		$pageyoffset = $this->getRequest( "pageyoffset" );
 		$hostname    = HOST_NAME;
 
-		$show = $this->getRequest( "show-modal" );
-		$show = isset( $this->showModal ) ? $this->showModal : $show;
-	
-		$out->inprint( "<body data-class='Page' style='overflow-y:scroll;' id='$page_id' data-show='$show' class='$this->browser' data-browser='$this->browser' data-hostname='$hostname' data-pageyoffset='$pageyoffset'>" );
+		if ( ! array_key_exists( "no-modal", $this->request ) )
+		{
+			$show = $this->getRequest( "show-modal" );
+			$show = isset( $this->showModal ) ? $this->showModal : $show;
+		}
+		$out->inprint( "<body data-class='Page' style='min-height:100vh;margin:0;' id='$page_id' data-show='$show' class='$this->classes' data-browser='$this->browser' data-hostname='$hostname' data-pageyoffset='$pageyoffset'>" );
 	}
 
 	function bodyContent( $out )
 	{
-		$out->inprint( "<div id='body-content'>" );
+		$out->inprint( "<div id='body-content' style='min-height:100vh;'>" );
 		{
-			$this->bodyNavigation( $out );
-			$this->bodyBackground( $out );
+			$out->inprint( "<div id='page-width' style='min-height:100vh;position:relative;'>" );
+			{
+				$this->pageBehind( $out );
+			
+				$out->inprint( "<div id='page'>" );
+				{
+					$this->pageContent( $out );
+				}
+				$out->outprint( "</div>" );
+
+				$this->bodyFooter( $out );
+			}
+			$out->outprint( "</div>" );
+		}
+		$out->outprint( "</div><!-- body-content -->" );
+
+		$this->bodyNavigation( $out );
+
+		$this->bodyModalBackground( $out );
+	}
+
+	function pageBehind( $out )
+	{}
+
+	function pageContent( $out )
+	{
+		$out->inprint( "<div id='page-content'>" );
+		{
+			$this->bodyNotifications( $out );
 			$this->bodyBreadcrumbs( $out );
 			$this->bodyHeader( $out );
 			$this->bodyMiddle( $out );
-			$this->bodyFooter( $out );
 		}
-		$out->outprint( "</div><!-- body-content -->" );
+		$out->outprint( "</div>" );
 	}
+
 
 	function bodyEnd( $out )
 	{
 		$out->outprint( "</body>" );
 	}
 
+	function bodyNotifications( $out )
+	{}
+
 	function bodyNavigation( $out )
-	{
-	}
+	{}
 
 	function bodyBackground( $out )
-	{
-	}
+	{}
 
 	function bodyBreadcrumbs( $out )
-	{
-	}
+	{}
 
 	function bodyHeader( $out )
-	{
-	}
+	{}
 
 	function bodyMiddle( $out )
 	{
@@ -361,22 +523,59 @@ class Page
 	function bodyFooter( $out )
 	{
 	}
+
+	function bodyModalBackground( $out )
+	{
+		$out->println( "<div id='modal-bg'></div>" );
+	}
 	
 	function bodyModals( $out )
 	{
 		foreach ( $this->modals as $modal )
 		{
-			$out->inprint( "<!-- modal start -->" );
+			$out->println( "<!-- modal start -->" );
 		
 			$modal->render( $out );
 
-			$out->outprint( "<!-- modal end -->" );
+			$out->println( "<!-- modal end -->" );
 		}
 	}
 
 	function bodyPopups( $out )
 	{
 		$out->println( "<div id='popup' class='popup'></div>" );
+	}
+
+	function visiting( $debug )
+	{
+		if ( DB )
+		{
+			$ip_address = $_SERVER["REMOTE_ADDR"];
+			$session    = $this->retrieveSession();
+
+			Impressions::Replace( $ip_address, $session, $debug );
+		
+			if ( ! Visits::Exists( $ip_address, $debug ) )
+			{
+				Visits::Replace( $ip_address, $debug );
+			}
+		}
+	}
+
+	function retrieveSession()
+	{
+		$session = "";
+
+		if ( array_key_exists( "session", $this->request ) )
+		{
+			$session = $this->getRequest( "session" );
+		}
+		else
+		{
+			$session = md5(time());
+			$this->setCookie( "session", $session, $path = "/", $httpOnly = TRUE );
+		}
+		return $session;
 	}
 
 	function releaseDB( $debug )
@@ -450,6 +649,16 @@ class Page
 			}
 			return substr( $ret, 1 );
 		}
+
+	static function determineIfMobile( $http_user_agent )
+	{
+		//	See:
+		//	http://stackoverflow.com/questions/6636306/mobile-browser-detection
+	
+		return (bool)preg_match('#\b(ip(hone|od)|android\b.+\bmobile|opera m(ob|in)i|windows (phone|ce)|blackberry'.
+                    '|s(ymbian|eries60|amsung)|p(alm|rofile/midp|laystation portable)|nokia|fennec|htc[\-_]'.
+                    '|up\.browser|[1-4][0-9]{2}x[1-4][0-9]{2})\b#i', $_SERVER['HTTP_USER_AGENT'] );
+	}
 
 	static function determineBrowser( $http_user_agent )
 	{

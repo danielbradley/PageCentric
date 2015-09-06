@@ -69,14 +69,25 @@ function ( event )
 	var sx     = pagecentric.scrollOffsetX();
 	var sy     = pagecentric.scrollOffsetY();
 
-	var x      = sx + event.clientX + offset;
+	var x      = sx + event.clientX;
 	var y      = sy + event.clientY;
 
 	var div    = document.getElementById( "popup" );
 
 	if ( div )
 	{
-		div.style.left = x + "px";
+		//	Flip to left side of arrow if beyond 700 pixels.
+
+		if ( x > 700 )
+		{
+			x -= (offset + div.clientWidth);
+			div.style.left = x + "px";
+		}
+		else
+		{
+			x += offset;
+			div.style.left = x + "px";
+		}
 		div.style.top  = y + "px";
 	}
 }

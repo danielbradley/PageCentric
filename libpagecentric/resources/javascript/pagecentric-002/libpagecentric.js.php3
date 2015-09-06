@@ -3,6 +3,7 @@
 header( "Content-type:text/javascript" );
 
 include_once(         "base.js" );
+include_once( "appledatetime.js" );
 include_once(      "article.js" );
 include_once(   "checklimit.js" );
 include_once(    "checkshow.js" );

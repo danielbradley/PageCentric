@@ -12,7 +12,7 @@ class InitialisationControl extends View
 		$dirs[] = BASE . "/share/sql/" . DB . "/" . DB_VERSION . "/02Views";
 		$dirs[] = BASE . "/share/sql/" . DB . "/" . DB_VERSION . "/03Data";
 		$dirs[] = BASE . "/share/sql/" . DB . "/" . DB_VERSION . "/04StoredProcedures";
-		$dirs[] = BASE . "/share/sql/" . DB . "/" . DB_VERSION . "/05Grants";
+		$dirs[] = BASE . "/share/sql/" . DB . "/" . DB_VERSION . "/05Final";
 	
 		$this->view = new DBCredentialsView( $page, $debug );
 		$this->view->setSQLDirs( $dirs );

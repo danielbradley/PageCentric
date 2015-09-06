@@ -592,32 +592,27 @@ SELECT invalid_logins INTO $invalid FROM users WHERE email=$email;
 
 IF "" != $email THEN
 
-  IF $invalid > 4 THEN
+  SET $phash2 = Users_Compute_Hash( $salt, $password );
 
-     SELECT SLEEP( $invalid );
+  IF $phash1=$phash2 THEN
 
-     SET $sessionid = "INVALID_LOGINS";
+    SET $sessionid = generate_salt();
+
+    WHILE EXISTS( SELECT * FROM users_sessions WHERE sid=$sessionid ) DO
+      SET $sessionid = generate_salt();
+    END WHILE;
+	  
+    REPLACE INTO users_sessions VALUES ( $sessionid, $email, NOW(), NOW(), UNIX_TIMESTAMP() + 1000 );
+    UPDATE users SET invalid_logins = 0, last_login=NOW() WHERE email=$email;
 
   ELSE
 
-    SET $phash2 = Users_Compute_Hash( $salt, $password );
+    UPDATE users SET invalid_logins = $invalid + 1 WHERE email=$Email;
+    SET $sessionid = "INVALID_PASSWORD";
 
-    IF $phash1=$phash2 THEN
-
-      SET $sessionid = generate_salt();
-
-      WHILE EXISTS( SELECT * FROM users_sessions WHERE sid=$sessionid ) DO
-        SET $sessionid = generate_salt();
-	  END WHILE;
-	  
-      REPLACE INTO users_sessions VALUES ( $sessionid, $email, NOW(), NOW(), UNIX_TIMESTAMP() + 1000 );
-      UPDATE users SET invalid_logins = 0, last_login=NOW() WHERE email=$email;
-
-    ELSE
-
-      UPDATE users SET invalid_logins = $invalid + 1 WHERE email=$Email;
-      SET $sessionid = "INVALID_PASSWORD";
-
+    IF $invalid > 4 AND "" != $password THEN
+      SELECT SLEEP( $invalid );
+  	  SET $sessionid = "INVALID_LOGINS";
     END IF;
   END IF;
 ELSE
@@ -925,8 +920,6 @@ CREATE PROCEDURE Payments_Customers_Replace
 )
 BEGIN
 
-DECLARE $USER INT;
-
 IF Is_Local_Caller() THEN
 
   REPLACE INTO payments_customers
@@ -1015,7 +1008,7 @@ END
 ;
 CREATE PROCEDURE Payments_Plans_Retrieve
 (
-  $sid                             CHAR(32),
+  $sid                             CHAR(64),
   $USER                             INT(11)
 )
 BEGIN
@@ -1061,7 +1054,7 @@ END
 ;
 CREATE PROCEDURE Payments_Purchases_Insert
 (
-  $sid                             CHAR(32),
+  $sid                             CHAR(64),
   $USER                             INT(11),
   $description                     CHAR(99),
   $cost                         DECIMAL(13,2)
@@ -1119,7 +1112,7 @@ END
 ;
 CREATE PROCEDURE Payments_Credit_Cards_Replace
 (
-  $sid                             CHAR(32),
+  $sid                             CHAR(64),
   $USER                             INT(11),
   $final_four                      CHAR(4),
   $number                          TEXT,
@@ -1156,7 +1149,7 @@ END
 ;
 CREATE PROCEDURE Payments_Credit_Cards_Delete
 (
-  $sid                             CHAR(32),
+  $sid                             CHAR(64),
   $USER                             INT(11)
 )
 BEGIN
@@ -1181,7 +1174,7 @@ END
 ;
 CREATE PROCEDURE Payments_Credit_Cards_Retrieve_By_User
 (
-  $sid                             CHAR(32),
+  $sid                             CHAR(64),
   $USER                             INT(11)
 )
 BEGIN
@@ -1356,7 +1349,7 @@ END
 ;
 CREATE PROCEDURE Payments_Transactions_Retrieve_By_User
 (
-  $sid                             CHAR(32),
+  $sid                             CHAR(64),
   $USER                             INT(11)
 )
 BEGIN
@@ -1392,7 +1385,7 @@ END
 ;
 CREATE PROCEDURE Payments_Details_Replace
 (
-  $sid                          CHAR(32),
+  $sid                          CHAR(64),
   $USER                          INT(11),
   $given_name                   CHAR(99),
   $family_name                  CHAR(99),
@@ -1420,7 +1413,7 @@ END
 ;
 CREATE PROCEDURE Payments_Details_Retrieve
 (
-  $sid                             CHAR(32),
+  $sid                             CHAR(64),
   $USER                             INT(11)
 )
 BEGIN
@@ -1465,7 +1458,7 @@ END
 ;
 CREATE PROCEDURE Payments_Invoices_Retrieve_By_User
 (
-  $sid                             CHAR(32),
+  $sid                             CHAR(64),
   $USER                             INT(11)
 )
 BEGIN

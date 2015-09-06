@@ -63,3 +63,35 @@ function ()
 		}
 	}
 }
+
+pagecentric.showhide.showSiblings
+=
+function ( self, tag )
+{
+	var  p = self.parentNode;
+	if ( p )
+	{
+		var  div = p.parentNode;
+		if ( div )
+		{
+			var elements = div.getElementsByTagName( tag );
+			var n        = elements.length;
+			
+			for ( var i=0; i < n; i++ )
+			{
+				var px = elements[i];
+				
+				if ( px === p )
+				{
+					px.style.display = "none";
+				}
+				else
+				{
+					px.style.display = "block";
+				}
+			}
+		}
+	}
+	return false;
+}
+

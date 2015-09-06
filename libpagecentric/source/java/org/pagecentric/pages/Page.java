@@ -6,37 +6,31 @@ import java.io.*;
 
 import java.util.*;
 
-
-
-
-
 public class Page
 {
-private printer out;
+	private printer out;
 
-private printer debug;
+	private printer debug;
 
-private static HTTPContext context = new HTTPContext();
+	private static HTTPContext context = HTTPContext.Singleton();
 
-private String pageDescription;
+	private String pageDescription;
 
-private String pageKeywords;
+	private String pageKeywords;
 
-private String pageTitle;
+	private String pageTitle;
 
-private String pageTemplate;
+	private String pageTemplate;
 
-private String pagePath;
+	private String pagePath;
 
-private String pageID;
+	private String pageID;
 
-
-
-public Page()
-{
-	this.out     = new printer( System.out );
-	this.debug   = new printer( System.out );
-}
+	public Page()
+	{
+		this.out     = new printer( System.out );
+		this.debug   = new printer( System.out );
+	}
 
 public String getRequest( String key )
 {
@@ -82,6 +76,7 @@ public String getPageTitle()
 {
 	return (null != this.pageTitle) ? this.pageTitle : new String();
 }
+
 public void render()
 {
 	redirect( this.debug );

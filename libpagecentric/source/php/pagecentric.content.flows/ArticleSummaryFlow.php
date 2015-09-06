@@ -2,49 +2,57 @@
 
 class ArticleSummaryFlow extends View
 {
-	function __construct( $tuples )
+	function __construct( $articles )
 	{
 		$this->elements = array();
 		
-		foreach ( $tuples as $tuple )
+		foreach ( $articles as $article )
 		{
-			if ( $tuple instanceof ArticleInfo )
+			if ( $article instanceof Article )
 			{
-				$info = $tuple;
-
-				$subject  = $info->category;
-				$date     = $info->pubdate;
-				$title    = $info->titlecode;
-				$filename = $info->filename;
+				$group    = $article->getGroup();
+				$subject  = $article->getCategory();
+				$date     = $article->getPubdate();
+				$title    = $article->getTitlecode();
+				$filename = $article->getFilename();
 			}
 			else
 			{
-				$subject  = array_get( $tuple, "subject" );
-				$date     = array_get( $tuple, "date"    );
-				$title    = array_get( $tuple, "title"   );
+				$subject  = array_get( $article, "subject" );
+				$date     = array_get( $article, "date"    );
+				$title    = array_get( $article, "title"   );
 				$filename = "content.htm";
 			}
 		
-			$this->elements[] = $this->createElement( $subject, $date, $title, $filename, 300, 169 );
+			$this->elements[] = $this->createElement( $group, $subject, $date, $title, $filename, 300, 169 );
 		}
 	}
 
-	function createElement( $subject, $date, $title, $filename, $width, $height )
+	function createElement( $group, $subject, $date, $title, $filename, $width, $height )
 	{
-		return new ArticleSummaryElement( $subject, $date, $title, $filename, 300, 169 );
+		return new ArticleSummaryElement( $group, $subject, $date, $title, $filename, 300, 169 );
 	}
 
 	function render( $out )
 	{
-		foreach ( $this->elements as $element )
+		$out->inprint( "<div data-type='ArticleSummaryFlow'>" );
 		{
-			$out->inprint( "<div class='span span4 mtop20' style='height:420px;'>" );
+			foreach ( $this->elements as $element )
 			{
-				$element->render( $out );
+				$out->inprint( "<div class='span span4 mtop20'>" );
+				{
+					$element->render( $out );
+				}
+				$out->outprint( "</div>" );
 			}
-			$out->outprint( "</div>" );
+			
+			$this->renderMore( $out );
 		}
+		$out->outprint( "</div>" );
 	}
+
+	function renderMore( $out )
+	{}
 }
 
 ?>

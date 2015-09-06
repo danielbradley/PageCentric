@@ -9,6 +9,7 @@ class EmailAddress
 	function __construct( $email_address )
 	{
 		$this->email = $email_address;
+		$this->error = "";
 	}
 	
 	/*
@@ -27,17 +28,36 @@ class EmailAddress
 			{
 				if ( "" != $list[0] )
 				{
-					if ( array_get( 1, $list ) )
+					if ( array_key_exists( 1, $list ) )
 					{
-						if ( checkdnsrr( $list[1], "MX" ) )
+						$parts = explode( ".", $list[1] );
+						$n     = count( $parts );
+						
+						if ( $n > 1 )
 						{
-							$debug->println( "<!-- $this->email is valid -->" );
-							$ret = True;
-						} else {
-							$debug->println( "<!-- $this->email is invalid -->" );
+							//if ( checkdnsrr( $list[1], "MX" ) )
+							{
+								$ret = True;
+							}
+							//else
+							//{
+							//	$this->error = "DNS lookup failed!";
+							//}
 						}
 					}
+					else
+					{
+						$this->error = "No domain specified in email address!";
+					}
 				}
+				else
+				{
+					$this->error = "No account specified in email address!";
+				}
+			}
+			else
+			{
+				$this->error = "Malformed email address!";
 			}
 		}
 		

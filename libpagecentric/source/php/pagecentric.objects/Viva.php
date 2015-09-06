@@ -19,7 +19,7 @@ class Viva
 	
 		$username = array_get( $request, "username" );
 		$password = array_get( $request, "password" );
-	
+
 		$this->establishSession( $username, $password, $debug );
 		$this->retrieveCredentials( $debug );
 
@@ -205,6 +205,11 @@ class Viva
 	function isAuthenticated()
 	{
 		return isset( $this->authenticated ) ? $this->authenticated : False;
+	}
+
+	function isReadOnly()
+	{
+		return array_get( $this->credentials, "read_only" );
 	}
 	
 	function getAuthenticationStatus()

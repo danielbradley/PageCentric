@@ -73,12 +73,12 @@ class InitialisationController extends Controller
 		return $status;
 	}
 
-	function installTablesFor( $status, $namespace, $request, $debug )
+	function installTablesFor( $status, $nspace, $request, $debug )
 	{
 		$i = 1;
 		while ( true )
 		{
-			$key = $namespace . $i;
+			$key = $nspace . $i;
 			$debug->println( "<!-- $key -->" );
 			if ( array_key_exists( $key, $request ) )
 			{
@@ -119,7 +119,7 @@ class InitialisationController extends Controller
 			{
 				$database_name = DB . DB_VERSION;
 				
-				$db = new DBi( $dbadmin, DB_HOSTNAME, $dbpassword, False );
+				$db = new DBi( $dbadmin, DB_HOSTNAME, $dbpassword );
 				if ( $db->connect( $debug ) )
 				{
 					$debug->println( "<!-- Connected -->" );
@@ -167,7 +167,7 @@ class InitialisationController extends Controller
 			$db = new DBi( $dbadmin, DB_HOSTNAME, $dbpassword, False );
 			if ( $db->connect( $debug ) )
 			{
-				$sql = "GRANT EXECUTE ON $database_name.* TO '$db_username'@'$db_hostname' IDENTIFIED BY '$db_password'";
+				$sql = "GRANT EXECUTE ON $database_name.* TO '$db_username'@'$db_hostname' IDENTIFIED BY '$db_password' require x509";
 				$status = $db->change( DB, $sql, $debug );
 				if ( $status )
 				{

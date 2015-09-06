@@ -238,6 +238,33 @@ class Date
 	
 		return $mth;
 	}
+
+	static function ConvertToStandardDate( $date )
+	{
+		$ret = $date;
+		if ( "" != $date )
+		{
+			if ( string_contains( $date, "/" ) )
+			{
+				$datetime = date_create_from_format( "d/m/Y", $date );
+			}
+			else
+			{
+				$datetime = date_create_from_format( "Y-m-d", $date );
+			}
+			
+			$Y = $datetime->format( "Y" );
+			$m = $datetime->format( "m" );
+			$d = $datetime->format( "d" );
+			
+			if ( $Y < 2000 )
+			{
+				$Y += 2000;
+			}
+			$ret = $datetime->setDate( $Y, $m, $d )->format( "Y-m-d" );
+		}
+		return $ret;
+	}
 }
 
 ?>

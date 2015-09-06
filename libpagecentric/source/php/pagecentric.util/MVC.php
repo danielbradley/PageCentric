@@ -6,8 +6,6 @@
 
 class Model
 {
-	function update()
-	{}
 }
 
 class View

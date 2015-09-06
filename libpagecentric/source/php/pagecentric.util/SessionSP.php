@@ -137,16 +137,20 @@ class SessionSP
 		$username = $this->username;
 		$password = $this->password;
 	
-		$debug->println ("<!-- SessionSP.authenticate() start -->" );
-		$debug->indent();
+		$debug->inprint("<!-- SessionSP.authenticate() start -->" );
 		{
-		
-			$id = array_get( first( DBi_callProcedure( DB, "Users_Sessions_Replace( '$username', '$password' )", $debug ) ), "sessionid" );
+			$sql = "Users_Sessions_Replace( '$username', '$password' )";
 			
-			if ( False === $id )
-			{
-				$id = DBi_callFunction( DB, "Session_Authenticate( '$username', '$password' )", $debug );
-			}
+			error_log( $sql );
+		
+			$id = array_get( first( DBi_callProcedure( DB, $sql, $debug ) ), "sessionid" );
+
+			$debug->println( "<!-- Called: Users_Sessions_Replace( '$username', '$password' ) : $id -->" );
+			
+//			if ( False === $id )
+//			{
+//				$id = DBi_callFunction( DB, "Session_Authenticate( '$username', '$password' )", $debug );
+//			}
 			
 			switch ( $id )
 			{
@@ -155,13 +159,17 @@ class SessionSP
 			case "INVALID_USER":
 				$ret = $id;
 				break;
+
+			case "":
+				$ret = "INVALID_LOGINS";
+				break;
+
 			default:
 				$this->sessionid = $id;
 				$ret = "AUTHENTICATED";
 			}
 		}
-		$debug->outdent();
-		$debug->println ("<!-- SessionSP.authenticate() end -->" );
+		$debug->outprint("<!-- SessionSP.authenticate() end -->" );
 
 		return $ret;
 	}
@@ -170,8 +178,7 @@ class SessionSP
 	{
 		$ret = "INVALID_SESSION";
 
-		$debug->println ("<!-- Session.verifySession() start -->" );
-		$debug->indent();
+		$debug->inprint("<!-- Session.verifySession() start -->" );
 		{
 			$id = $this->sessionid;
 			if ( $id )
@@ -182,9 +189,7 @@ class SessionSP
 				}
 			}
 		}
-
-		$debug->outdent();
-		$debug->println ("<!-- Session.verifySession() end -->" );
+		$debug->outprint( "<!-- Session.verifySession() end -->" );
 
 		return $ret;
 	}

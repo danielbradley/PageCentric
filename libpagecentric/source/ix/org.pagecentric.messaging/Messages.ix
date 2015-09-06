@@ -1,0 +1,68 @@
+
+public table messages joins users
+{
+	MESSAGE_ID      : integer;
+	CONVERSATION_ID : integer;
+    FROM            : integer;
+	TO              : integer;
+    sent            : DateTime;
+	read            : DateTime;
+    subject         : string*;
+	body            : string*;
+}
+
+
+public RetrieveMessages
+(
+	sid             : string&,
+	order           : string&,
+)
+: []
+{
+	if ( var credentials = Users.Session_Authorise( sid ) )
+	{
+		var fields = "*"
+		var where  = "NOT read = 0"
+		var order  = "sent DESC";
+		
+		return messages.select( fields, where, order );
+
+		//	SELECT * FROM messages WHERE NOT read = 0 ORDER BY sent DESC;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+~tables~
+DROP   TABLE messages;
+CREATE TABLE messages
+(
+  MESSAGE_ID       INT(11),
+  CONVERSATION_ID  INT(11),
+  FROM             INT(11),
+  TO               INT(11),
+  sent            DATETIME,
+  read            DATETIME,
+  subject             TEXT,
+  body                TEXT,
+
+  PRIMARY KEY (MESSAGE_ID)
+);
+~
+
+*/

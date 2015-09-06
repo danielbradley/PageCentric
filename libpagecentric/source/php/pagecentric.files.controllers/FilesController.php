@@ -39,6 +39,33 @@ class FilesController extends Controller
 		}
 		return $FILE;
 	}
+
+	static function InsertBase64File( $sid, $USER, $kind, $file_name, $file_type, $file_size, $file_extension, $file_content, $debug )
+	{
+		$FILE = 0;
+		{
+			$filename          = $file_name;
+			$filesize          = $file_size;
+			$filetype          = $file_type;
+			$base64            = $file_content;
+
+			$pathinfo          = pathinfo( $filename );
+			$fileextension     = $file_extension;
+					
+			if ( !get_magic_quotes_gpc() )
+			{
+				$filename          = addslashes( $filename );
+				$original_filename = addslashes( $filename );
+			}
+			
+			$sql  = "Files_Replace( '$sid', '0', '$USER', '$kind', '$original_filename', '$filename', '$filetype', '$filesize', '$fileextension', '<base64 encoded data>' )";
+			$debug->println( "<!-- $sql -->" );
+
+			$sql  = "Files_Replace( '$sid', '0', '$USER', '$kind', '$original_filename', '$filename', '$filetype', '$filesize', '$fileextension', '$base64' )";
+			$FILE = array_get( first( DBi_callProcedure( DB, $sql, new NullPrinter() ) ), "FILE" );
+		}
+		return $FILE;
+	}
 	
 	static function retrieve( $sid, $token, $debug )
 	{

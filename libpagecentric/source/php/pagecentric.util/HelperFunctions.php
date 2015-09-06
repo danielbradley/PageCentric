@@ -11,12 +11,12 @@ function array_get( $key, $array )
 	$ret = "";
 	if ( isset( $key ) && isset( $array ) )
 	{
-		if ( is_array( $key ) )
+		if ( is_array( $key ) && is_string( $array) )
 		{
 			$ret = array_key_exists( $array, $key ) ? $key[$array] : "";
 		}
 		else
-		if ( is_array( $array ) )
+		if ( is_array( $array ) && is_string( $key ) )
 		{
 			$ret = array_key_exists( $key, $array ) ? $array[$key] : "";
 		}
@@ -58,6 +58,16 @@ function printContent( $filename, $out )
 function string_contains( $hay, $needle )
 {
 	return ( strpos( $hay, $needle ) !== false );
+}
+
+function string_replace( $text, $array )
+{
+	foreach ( $array as $key => $value )
+	{
+		$text = str_replace( "%" . $key . "%", $value, $text );
+	}
+	
+	return $text;
 }
 
 function string_startsWith( $hay, $needle )
@@ -198,5 +208,32 @@ function content_decode( $content )
 	return $content;
 }
 
+function IsHTTPS()
+{
+	return (isset( $_SERVER ) && ("" != array_get( $_SERVER, "HTTPS" )));
+}
+
+//function array_isAssociative( $array )
+//{
+//	$keys = array_keys( $array );
+//
+//	return ($keys[0] != '0');
+//}
+//
+//function array_isAssociativeX( $array )
+//{
+//	$associative = false;
+//	$keys        = array_keys( $array );
+//	
+//	foreach ( $keys as $obj )
+//	{
+//		if ( ! is_numeric( $obj ) ) $associative = true;
+//	}
+//
+//	if ( ! $associative ) echo "XXX";
+//
+//	return $associative;
+//}
+//
 
 

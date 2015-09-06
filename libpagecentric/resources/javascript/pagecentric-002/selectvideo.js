@@ -122,6 +122,7 @@ function setup_selectvideo()
 		{
 			if ( "selectvideo" == elements[i].getAttribute( "data-action" ) )
 			{
+				elements[i].onclick  = selectvideo;
 				elements[i].onselect = selectvideo;
 //				pagecentric.addEventListener( elements[i], "select", selectvideo );
 			}

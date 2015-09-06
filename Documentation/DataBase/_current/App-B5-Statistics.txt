@@ -1,0 +1,211 @@
+
+..		Statistics
+
+...			Visits
+
+~tables~
+DROP   TABLE statistics_visits;
+CREATE TABLE statistics_visits
+(
+ip_address                          CHAR(99),
+visit                                   DATE,
+
+PRIMARY KEY (ip_address,visit)
+);
+~
+
+....			Views
+
+~views~
+DROP   VIEW view_statistics_visits;
+CREATE VIEW view_statistics_visits AS
+  SELECT COUNT(*) FROM statistics_visits;
+~
+
+~views~
+DROP   VIEW view_statistics_uniques;
+CREATE VIEW view_statistics_uniques AS
+  SELECT ip_address FROM statistics_visits GROUP BY ip_address;
+~
+
+
+
+....			Stored Procedures
+
+.....				Replace
+
+~sp~
+DROP   PROCEDURE Statistics_Visits_Replace;
+DELIMITER //
+CREATE PROCEDURE Statistics_Visits_Replace
+(
+  $ip_address                       CHAR(99)
+)
+BEGIN
+
+INSERT INTO statistics_visits
+  (  ip_address, visit )
+VALUES
+  ( $ip_address, NOW() );
+
+END
+//
+DELIMITER ;
+~
+
+
+.....				Exists
+
+~sp~
+DROP   FUNCTION Statistics_Visits_Exists;
+DELIMITER //
+CREATE FUNCTION Statistics_Visits_Exists
+(
+  $ip_address                       CHAR(99)
+)
+RETURNS BOOL
+READS SQL DATA
+BEGIN
+
+return EXISTS( SELECT * FROM statistics_visits WHERE ip_address=$ip_address AND DATE(NOW()) = visit );
+
+END
+//
+DELIMITER ;
+~
+
+
+.....				Count
+
+~sp~
+DROP   FUNCTION Statistics_Visits_Count;
+DELIMITER //
+CREATE FUNCTION Statistics_Visits_Count
+(
+  $days                              INT(11)
+)
+RETURNS BOOL
+READS SQL DATA
+BEGIN
+
+DECLARE $count INT;
+
+SELECT COUNT(*) INTO $count FROM statistics_visits WHERE DATE_SUB( NOW(), INTERVAL $days DAY ) < visit;
+
+return $count;
+
+END
+//
+DELIMITER ;
+~
+
+~sp~
+DROP   PROCEDURE Statistics_Retrieve;
+DELIMITER //
+CREATE PROCEDURE Statistics_Retrieve
+()
+BEGIN
+
+DECLARE $impressions             INT;
+DECLARE $new_visitors            INT;
+DECLARE $new_users               INT;
+
+DECLARE $total_visitors          INT;
+DECLARE $total_users             INT;
+
+DECLARE $daily_active_users      INT;
+DECLARE $weekly_active_users     INT;
+DECLARE $monthly_active_users    INT;
+
+DECLARE $average_visit_duration  FLOAT(10,5);
+DECLARE $average_visits_per_user FLOAT(10,5);
+
+IF Is_Local_Caller() THEN
+
+  SELECT COUNT(*) INTO $impressions          FROM statistics_impressions;
+  SELECT COUNT(*) INTO $new_visitors         FROM statistics_visits        WHERE DATE_SUB( NOW(), INTERVAL 1 DAY ) <= visit;
+  SELECT COUNT(*) INTO $new_users            FROM view_users               WHERE DATE_SUB( NOW(), INTERVAL 1 DAY ) <= created AND NOT type='ADMIN';
+
+  SELECT COUNT(*) INTO $total_visitors       FROM view_statistics_uniques;
+  SELECT COUNT(*) INTO $total_users          FROM view_users               WHERE NOT type='ADMIN';
+
+  SELECT COUNT(*) INTO   $daily_active_users FROM view_users               WHERE DATE_SUB( NOW(), INTERVAL  1 DAY ) <= last_login AND NOT type='ADMIN';
+  SELECT COUNT(*) INTO  $weekly_active_users FROM view_users               WHERE DATE_SUB( NOW(), INTERVAL  7 DAY ) <= last_login AND NOT type='ADMIN';
+  SELECT COUNT(*) INTO $monthly_active_users FROM view_users               WHERE DATE_SUB( NOW(), INTERVAL 30 DAY ) <= last_login AND NOT type='ADMIN';
+
+  SELECT AVG( duration ) INTO $average_visit_duration  FROM view_statistics_impressions;
+  SELECT AVG( visits   ) INTO $average_visits_per_user FROM users;
+
+  SELECT
+    $impressions             AS impressions,
+    $new_visitors            AS new_visitors,
+    $new_users               AS new_users,
+    $total_visitors          AS total_visitors,
+    $total_users             AS total_users,
+    $daily_active_users      AS daily_active_users,
+    $weekly_active_users     AS weekly_active_users,
+    $monthly_active_users    AS monthly_active_users,
+    $average_visit_duration  AS average_visit_duration,
+	$average_visits_per_user AS average_visits_per_user;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+...			Impressions
+
+~tables~
+DROP   TABLE statistics_impressions;
+CREATE TABLE statistics_impressions
+(
+ip_address                          CHAR(99),
+session                             CHAR(64),
+start                               DATETIME,
+end                                 DATETIME,
+counter                              INT(11),
+
+PRIMARY KEY (ip_address,session)
+);
+~
+
+~sp~
+DROP   PROCEDURE Statistics_Impressions_Replace;
+DELIMITER //
+CREATE PROCEDURE Statistics_Impressions_Replace
+(
+  $ip_address                       CHAR(99),
+  $session                          CHAR(64)
+)
+BEGIN
+
+DECLARE $now DATETIME;
+
+SET $now = NOW();
+
+IF EXISTS( SELECT * FROM statistics_impressions WHERE ip_address=$ip_address AND session=$session ) THEN
+
+  UPDATE statistics_impressions SET end=$now, counter = counter + 1 WHERE ip_address=$ip_address AND session=$session;
+  
+ELSE
+
+  INSERT INTO statistics_impressions
+    (  ip_address,  session, start,  end,  counter )
+  VALUES
+    ( $ip_address, $session,  $now, $now,        1 );
+	
+END IF;
+
+END
+//
+DELIMITER ;
+~
+
+~views~
+DROP   VIEW view_statistics_impressions;
+CREATE VIEW view_statistics_impressions AS
+  SELECT ip_address, session, start, UNIX_TIMESTAMP( start ) AS start_ts, end, UNIX_TIMESTAMP( end ) AS end_ts, counter, UNIX_TIMESTAMP( end ) - UNIX_TIMESTAMP( start ) AS duration
+  FROM statistics_impressions;
+~

@@ -17,5 +17,5 @@ org_pagecentric_pages:
 	javac -g -d obj -classpath source/java source/java/org/pagecentric/pages/Page.java
 
 php:
-	phpcompile > lib/libpagecentric.php
+	phpcompile > lib/autoload.php
 

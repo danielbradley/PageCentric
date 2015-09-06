@@ -49,6 +49,28 @@ function DBi_callProcedure( $database, $procedure, $debug )
 	return $ret;
 }
 
+function DBi_callProcedureStreamJSON( $database, $procedure, $out, $debug )
+{
+	$debug->println( "<!-- DBi_callProcedureStreamJSON( $database, $procedure ) start -->" );
+	$debug->indent();
+	{
+		$ret = False;
+		$db = DBi_anon();
+		
+		if ( $db->connect( $debug ) )
+		{
+			$sql = "CALL $procedure";
+
+			$ret = $db->callProcedureStreamJSON( $database, $sql, $out, $debug );
+
+			$db->close( $debug );
+		}
+	}
+	$debug->outdent();
+	$debug->println( "<!-- DBi_callProcedure() end -->" );
+	return $ret;
+}
+
 function DBi_escape( $string )
 {
 	return $string;
@@ -123,14 +145,35 @@ class DBi
 		$pass = $this->password;
 
 		$debug->println( "<!-- DBi::connect(): mysql://$user:$host:$pass/ -->" );
-		
-		$this->mysqli = new mysqli( $host, $user, $pass );
-		
-		if ( NULL == $this->mysqli->connect_error )
+
+		$this->mysqli = mysqli_init();
+
+		if ( $this->mysqli )
 		{
-			return True;
-		} else {
-			$this->mysqli = NULL;
+			if ( file_exists( "/local/settings/services/mysql/ssl/client-key.pem" ) )
+			{
+				mysqli_ssl_set
+				(
+					$this->mysqli,
+					"/local/settings/services/mysql/ssl/client-key.pem",
+					"/local/settings/services/mysql/ssl/client-cert.pem",
+					"/local/settings/services/mysql/ssl/ca-cert.pem",
+					NULL,
+					NULL
+				);
+			}
+			$this->mysqli->real_connect( $host, $user, $pass );
+		
+			if ( NULL == $this->mysqli->connect_error )
+			{
+				return True;
+			} else {
+				$this->mysqli = NULL;
+				return False;
+			}
+		}
+		else
+		{
 			return False;
 		}
 	}
@@ -256,6 +299,59 @@ class DBi
 				{
 					$tuples[] = $row;
 				}
+
+				mysqli_free_result( $resource );
+			} else {
+				$error = "<!-- Error: SQL: $sql_query - " . $this->lastErrorMessage() . " -->";
+				$debug->println( $error );
+			}
+		} else {
+			$debug->println( "<!-- Error: Could not select database: $database -->" );
+		}
+
+		$debug->outdent();
+		$debug->println( "<!-- DBi::callProcedure() end -->" );
+
+		return $tuples;
+	}
+
+	function callProcedureStreamJSON( $database, $sql_query, $out, $debug )
+	{
+		$tuples = False;
+
+		$database = $database . DB_VERSION;
+	
+		$debug->println( "<!-- DBi::callProcedure() start -->" );
+		$debug->indent();
+	
+		if ( mysqli_select_db( $this->mysqli, $database ) )
+		{
+			$resource = mysqli_query( $this->mysqli, $sql_query );
+			if ( True === $resource )
+			{
+				$debug->println( "<!-- returned True -->" );
+				$tuples = array();
+			}
+			else if ( False === $resource )
+			{
+				$debug->println( "<!-- returned False -->" );
+			}
+			else if ( $resource )
+			{
+				$debug->println( "<!-- returned Resource -->" );
+				$nr_results = 0;
+				$debug->println( "<!-- SQL: $sql_query -->" );
+
+				$out->println("{ \"results\" : [" );
+				$sep = "";
+				while ( $row = mysqli_fetch_array( $resource, MYSQL_ASSOC ) )
+				{
+					$out->println( $sep );
+					$out->printf( \JSON::encodeObject( $row ) );
+					$sep = ", ";
+				}
+				$out->println( " " );
+				$out->println( "]}" );
 
 				mysqli_free_result( $resource );
 			} else {

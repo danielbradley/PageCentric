@@ -1,0 +1,117 @@
+
+..		Logs
+
+~tables~
+DROP   TABLE logs;
+CREATE TABLE logs
+(
+  LOG_ID                               INT(11) AUTO_INCREMENT,
+  CALL_ID                              INT(11),
+  logged                              DATETIME,
+  level                               CHAR(20),
+  source                                  TEXT,
+  message                                 TEXT,
+
+PRIMARY KEY (LOG_ID)
+);
+~
+
+....			Stored Procedures
+
+.....				Prime
+
+~sp~
+DROP   PROCEDURE Logs_Prime;
+DELIMITER //
+CREATE PROCEDURE Logs_Prime
+(
+  $sid      CHAR(64),
+  $source       TEXT,
+  $message      TEXT
+)
+BEGIN
+
+DECLARE $CALL_ID INT;
+
+SELECT MAX( CALL_ID ) INTO $CALL_ID FROM logs;
+
+IF ISNULL( $CALL_ID ) THEN
+  SET $CALL_ID = 0;
+END IF;
+
+SET $CALL_ID = $CALL_ID + 1;
+
+INSERT INTO logs
+  (  LOG_ID,  CALL_ID, logged,  level,  source,  message )
+VALUES
+  (       0, $CALL_ID,  NOW(), 'CALL', $source, $message );
+
+SELECT $CALL_ID AS CALL_ID;
+
+END
+//
+DELIMITER ;
+~
+
+
+.....				Replace
+
+~sp~
+DROP   PROCEDURE Logs_Append;
+DELIMITER //
+CREATE PROCEDURE Logs_Append
+(
+  $CALL_ID       INT(11),
+  $level        CHAR(20),
+  $source           TEXT,
+  $message          TEXT
+)
+BEGIN
+
+IF 0 = $CALL_ID THEN
+  SELECT MAX( CALL_ID ) INTO $CALL_ID FROM logs;
+END IF;
+
+
+INSERT INTO logs
+  (  LOG_ID,  CALL_ID, logged,  level,  source,  message )
+VALUES
+  (       0, $CALL_ID,  NOW(), $level, $source, $message );
+
+END
+//
+DELIMITER ;
+~
+
+.....				Retrieve
+
+~sp~
+DROP   PROCEDURE Logs_Retrieve;
+DELIMITER //
+CREATE PROCEDURE Logs_Retrieve
+(
+  $sid          CHAR(64),
+  $after         INT(11)
+)
+BEGIN
+
+CALL Users_Authorise_Sessionid( $sid, @email, @USER, @idtype );
+
+IF "ADMIN" = @idtype THEN
+
+  IF $after THEN
+
+    SELECT * FROM logs WHERE $after < LOG_ID ORDER BY LOG_ID LIMIT 50000;
+
+  ELSE
+
+    SELECT * FROM (SELECT * FROM logs ORDER BY LOG_ID DESC LIMIT 50000) AS S1 ORDER BY CALL_ID, LOG_ID;
+
+  END IF;
+
+END IF;
+
+END
+//
+DELIMITER ;
+~

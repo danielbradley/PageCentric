@@ -154,6 +154,25 @@ class Radio extends Element
 			}
 		}
 	}
+
+	function asString()
+	{
+		$s = "";
+	
+		foreach ( $this->options as $text => $value )
+		{
+			if ( "" == $value ) $value = $text;
+		
+			if ( "$value" == "$this->selected" )
+			{
+				$s .= "<label><input $this->attributes class='radioitem' type='radio' value='$value' checked='checked'>&nbsp;<span>$text</span></labe>";
+			} else {
+				$s .= "<label><input $this->attributes class='radioitem' type='radio' value='$value'>&nbsp;<span>$text</span></label>";
+			}
+		}
+		
+		return $s;
+	}
 }
 
 class Select extends Element
@@ -214,8 +233,6 @@ class Select extends Element
 				//
 				//
 			
-			
-			
 				foreach ( $this->options as $value => $text )
 				{
 					$disabled = "";
@@ -239,8 +256,14 @@ class Select extends Element
 				
 					if ( "$value" == "$this->selected" )
 					{
+						$value = htmlentities( $value, ENT_QUOTES, "UTF-8", false );
+						$text  = htmlentities( $text,  ENT_QUOTES, "UTF-8", false );
+				
 						$out->println( "<option value='$value' selected$disabled>$text</option>" );
 					} else {
+						$value = htmlentities( $value, ENT_QUOTES, "UTF-8", false );
+						$text  = htmlentities( $text,  ENT_QUOTES, "UTF-8", false );
+
 						$out->println( "<option value='$value'$disabled>$text</option>" );
 					}
 				}

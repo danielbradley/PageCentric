@@ -1,0 +1,109 @@
+..		Module: Prergistrations
+
+...			Table preregistrations
+
+
+~tables~
+DROP   TABLE preregistrations;
+CREATE TABLE preregistrations
+(
+  name                     CHAR(99),
+  email                    CHAR(99),
+  info                         TEXT,
+  token                    CHAR(64),
+  created                  DATETIME DEFAULT 0,
+  confirmation_sent        DATETIME DEFAULT 0,
+  confirmed                DATETIME DEFAULT 0,
+
+  PRIMARY KEY (email)
+);
+~
+
+~sp_preregistrations~
+DROP   PROCEDURE Preregistrations_Replace;
+delimiter //
+CREATE PROCEDURE Preregistrations_Replace
+(
+  $name                    CHAR(99),
+  $email                   CHAR(99),
+  $info                        TEXT
+)
+BEGIN
+
+DECLARE $token CHAR(64);
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+    SET $token = generate_salt();
+
+    REPLACE INTO preregistrations
+        (  name,  email,  info,  token,  created )
+    VALUES
+        ( $name, $email, $info, $token,    NOW() );
+
+    SELECT "OK" AS status, $token AS token;
+
+END IF;
+
+END
+//
+delimiter ;
+~
+
+~sp~
+DROP   PROCEDURE Preregistrations_Unsent;
+delimiter //
+CREATE PROCEDURE Preregistrations_Unsent
+()
+BEGIN
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	IF Is_Local_Caller() THEN
+
+	  SELECT *, email AS TID FROM preregistrations WHERE confirmation_sent=0;
+
+	END IF;
+
+END IF;
+
+END
+//
+delimiter ;
+~
+
+~sp~
+DROP   PROCEDURE Preregistrations_Sent;
+delimiter //
+CREATE PROCEDURE Preregistrations_Sent
+(
+  $TID                       CHAR(99)
+)
+BEGIN
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	IF Is_Local_Caller() THEN
+
+	  UPDATE preregistrations SET confirmation_sent=NOW() WHERE email=$TID;
+
+	END IF;
+
+END IF;
+
+END
+//
+delimiter ;
+~

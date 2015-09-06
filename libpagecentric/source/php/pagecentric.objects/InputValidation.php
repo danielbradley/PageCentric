@@ -114,8 +114,8 @@ class InputValidation
 						{
 							$this->required["$name"] = "";
 						} else {
-						$name_invalid = $name . "_invalid";
-						$this->required["$name_invalid"] = $text;
+							$name_invalid = $name . "_invalid";
+							$this->required["$name_invalid"] = $text;
 						}
 					}
 					break;

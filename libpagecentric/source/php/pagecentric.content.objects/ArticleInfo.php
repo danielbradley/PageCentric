@@ -2,38 +2,29 @@
 
 class ArticleInfo
 {
-	function __construct( $category, $pubdate, $titlecode, $filename )
-	{
-		$this->category  = $category;
-		$this->pubdate   = $pubdate;
-		$this->titlecode = $titlecode;
-		$this->filename  = $filename;
-
-		$this->title = str_replace( '_', ' ', $titlecode );
-	}
-	
 	static function Decode( $filepath )
 	{
-		error_log( ">>> Decode( $filepath )" );
+//		error_log( ">>> Decode( $filepath )" );
 
-		$category   = "";
+		$group       = "";
+		$category    = "";
 		$resource_id = "";
-		$pubdate    = "";
-		$titlecode  = "";
-		$filename   = "";
+		$pubdate     = "";
+		$titlecode   = "";
+		$filename    = "";
 	
-		$real = str_replace( ARTICLES_PATH, "", $filepath );
-		$bits = explode( '/', $real );
+		//$real = str_replace( BASE_PATH, "", $filepath );
+		$bits = explode( '/', $filepath );
 		$n    = count( $bits );
 
-			error_log( "           real = $real" );
-		
+//			error_log( "           real = $real" );
+
 		if ( $n > 0 )
 		{
 			$n--;
 			$filename = $bits[$n];
 
-			error_log( "       filename = $filename" );
+//			error_log( "       filename = $filename" );
 		}
 
 		if ( $n > 0 )
@@ -43,7 +34,7 @@ class ArticleInfo
 			$pubdate     = ArticleInfo::extractPubdate  ( $resource_id );
 			$titlecode   = ArticleInfo::extractTitlecode( $resource_id );
 
-			error_log( "    resource_id = $resource_id" );
+//			error_log( "    resource_id = $resource_id" );
 		}
 
 		if ( $n > 0 )
@@ -52,7 +43,30 @@ class ArticleInfo
 			$category = $bits[$n];
 		}
 
-		return new ArticleInfo( $category, $pubdate, $titlecode, $filename );
+		if ( $n > 0 )
+		{
+			$n--;
+			$group = $bits[$n];
+		}
+
+		return new ArticleInfo( $filepath, $group, $category, $resource_id, $pubdate, $titlecode, $filename );
+	}
+
+	function __construct( $filepath, $group, $category, $resource_id, $pubdate, $titlecode, $filename )
+	{
+		$this->filepath   = $filepath;
+		$this->group      = $group;
+		$this->category   = $category;
+		$this->resourceID = $resource_id;
+		$this->pubdate    = $pubdate;
+		$this->titlecode  = $titlecode;
+		$this->filename   = $filename;
+		$this->dirpath    = dirname( $filepath );
+
+		$this->imagePath  = "$group/$category/$resource_id/image.png";
+		$this->imageURL   = VIDEO_HOST . "/" . APP_NAME . "/" . $this->imagePath;
+
+		$this->title = str_replace( '_', ' ', $titlecode );
 	}
 	
 	static function extractPubdate( $resource_id )
@@ -76,14 +90,16 @@ class ArticleInfo
 			$month = $bits[$i];
 			$i++;
 		}
-		
+
 		if ( $i < $n )
 		{
 			$day = $bits[$i];
 			$i++;
 		}
 
-		return "$year-$month-$day";
+		$t = is_numeric( $month ) ? "$year-$month-$day" : "$year-$month";
+
+		return $t;
 	}
 
 	static function extractTitleCode( $resource_id )

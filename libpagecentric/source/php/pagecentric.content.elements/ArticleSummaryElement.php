@@ -2,8 +2,10 @@
 
 class ArticleSummaryElement extends Element
 {
-	function __construct( $category, $date, $title, $filename, $width, $height )
+	function __construct( $group, $category, $date, $title, $filename, $width, $height )
 	{
+		$group = $group ? $group : "articles";
+	
 		$this->category   = str_replace( ' ', '_', $category );
 	
 		$this->filepath   = $this->GenerateFilePath     ( $category, $date, $title, $filename );
@@ -20,7 +22,7 @@ class ArticleSummaryElement extends Element
 
 		if ( file_exists( $this->filepath ) )
 		{
-			$htm = file_get_contents( $this->filepath, false );
+			$htm = Input::unidecode( file_get_contents( $this->filepath, false ) );
 			
 			if ( $htm )
 			{
@@ -93,7 +95,7 @@ class ArticleSummaryElement extends Element
 
 	function ExtractElement( $tagName, $dom )
 	{
-		$ret = "";
+		$ret = null;
 		{
 			$elements = $dom->getElementsByTagName( $tagName );
 
@@ -102,6 +104,24 @@ class ArticleSummaryElement extends Element
 				foreach ( $elements as $element )
 				{
 					$ret = $element->nodeValue;
+					break;
+				}
+			}
+		}
+		return $ret;
+	}
+
+	function ExtractElementAttribute( $tagName, $attribute, $dom )
+	{
+		$ret = "";
+		{
+			$elements = $dom->getElementsByTagName( $tagName );
+
+			if ( 0 < count( $elements ) )
+			{
+				foreach ( $elements as $element )
+				{
+					$ret = $element->getAttribute( $attribute );
 					break;
 				}
 			}
@@ -151,8 +171,10 @@ class ArticleSummaryElement extends Element
 		$encoded_category = str_replace( ' ', '_', $category );
 		$encoded_date     = str_replace( ' ', '_', $date     );
 		$encoded_title    = str_replace( ' ', '_', $title    );
+
+		$fs_category = $encoded_category ? $encoded_category . "/"              : "";
 	
-		$resource_id      = "$encoded_category$encoded_date-$encoded_title";
+		$resource_id      = "$fs_category$encoded_date-$encoded_title";
 	
 //		$fs_category = $encoded_category ? $encoded_category . "/"              : "";
 //		$fs_date     = $encoded_date     ? str_replace( '-', '/', $date ) . "/" : "";
@@ -184,7 +206,8 @@ class ArticleSummaryElement extends Element
 
 		$encoded_category = $encoded_category ? "/" . $encoded_category : "";
 	
-		$thumbnail = VIDEO_HOST . "/" . APP_NAME . "/articles$encoded_category/$resource_ID/thumbnail-" . $width . "x" . $height . ".png";
+		//$thumbnail = VIDEO_HOST . "/" . APP_NAME . "/articles$encoded_category/$resource_ID/thumbnail-" . $width . "x" . $height . ".png";
+		$thumbnail = VIDEO_HOST . "/" . APP_NAME . "/articles$encoded_category/$resource_ID/image.png";
 
 		return $thumbnail;
 	}

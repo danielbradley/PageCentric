@@ -15,6 +15,13 @@ class User
 	public $ehash;
 	public $phash;
 
+	static function HasValidSession( $sid, $debug )
+	{
+		$sql = "Users_Sessions_Verify( '$sid' )";
+		
+		return DBi_callFunction( DB, $sql, $debug );
+	}
+
 	function User( $request )
 	{
 		$this->request = $request;

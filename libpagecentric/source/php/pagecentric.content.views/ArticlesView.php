@@ -43,7 +43,7 @@ class ArticlesView extends View
 		{
 			$info = ArticleInfo::Decode( $filepath );
 			
-			$this->elements[] = new ArticleSummaryElement( $info->category, $info->pubdate, $info->titlecode, $info->filename, $width, $height );
+			$this->elements[] = new ArticleSummaryElement( $info->group, $info->category, $info->pubdate, $info->titlecode, $info->filename, $width, $height );
 		}
 	}
 

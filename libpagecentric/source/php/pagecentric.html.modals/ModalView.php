@@ -73,7 +73,7 @@ class ModalView extends View
 		$out->outprint( "</div>" );
 	}
 
-	function toId( $title )
+	static function toId( $title )
 	{
 		return str_replace( '&amp;', 'and', strtolower( str_replace( ',', '', str_replace( ' ', '_', str_replace( '/', '_', $title ) ) ) ) );
 	}

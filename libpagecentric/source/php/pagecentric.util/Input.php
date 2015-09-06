@@ -23,7 +23,15 @@ class Input
 					$filtered_val = Input::Filter( $val );
 
 					$filtered[$filtered_key] = $filtered_val;
-					$debug->println( "<!-- \"$filtered_key\" | \"$filtered_val\" -->" );
+
+					if ( is_array( $filtered_val ) )
+					{
+						$debug->println( "<!-- \"$filtered_key\" | Array -->" );
+					}
+					else
+					{
+						$debug->println( "<!-- \"$filtered_key\" | \"$filtered_val\" -->" );
+					}
 				}
 			}
 			$debug->outdent();
@@ -53,12 +61,39 @@ class Input
 
 	static function Filter( $value )
 	{
-		$value = Input::unidecode( $value );
-		$value = htmlentities( $value, ENT_QUOTES, 'UTF-8', false );
-		$value = get_magic_quotes_gpc() ? $value : addslashes( $value );
-		$value = DBi_escape( $value );
+		if ( is_array( $value ) )
+		{
+			$ret = array();
+			
+			foreach ( $value as $key => $val )
+			{
+				$filtered_key = Input::Filter( $key );
+				$filtered_val = Input::Filter( $val );
+			
+				$ret[$filtered_key] = $filtered_val;
+			}
+			
+			return $ret;
+		}
+		else
+		if ( is_string( $value ) )
+		{
+			$value = Input::unidecode( $value );
+			$value = htmlentities( $value, ENT_QUOTES, 'UTF-8', false );
+			$value = get_magic_quotes_gpc() ? $value : addslashes( $value );
+			$value = DBi_escape( $value );
 
-		return $value;
+			return $value;
+		}
+		else
+		if ( is_null( $value ) )
+		{
+			return "";
+		}
+		else
+		{
+			error_log( "Input::Filter( $value ): unexpected value!" );
+		}
 	}
 
 	static function unidecode( $value )
@@ -168,8 +203,6 @@ class Input
 		foreach( $unicode as $value ) $entities .= '&#' . $value . ';';
 		return $entities;
 	}
-	
-
 }
 
 ?>

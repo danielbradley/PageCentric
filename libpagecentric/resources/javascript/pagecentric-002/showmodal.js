@@ -8,6 +8,12 @@ pagecentric.setup.showmodal
 function ()
 {
 	pagecentric.setup.showmodal.foreach( document.getElementsByTagName( 'a' ) );
+
+	var modal_shield = document.getElementById( "modal-shield" );
+	if ( modal_shield )
+	{
+		modal_shield.onclick = pagecentric.showmodal.closeAllModals;
+	}
 }
 
 pagecentric.setup.showmodal.foreach
