@@ -8,7 +8,7 @@ dirs:
 	mkdir -p _SQL/05Grants
 
 doco:
-#	max2tex --packages graphicx --out Specification _current/*.txt
+	max2html --out doco _current/*.txt
 
 tables:
 	extract -s -p "tables"              _current/*.txt > _SQL/01Tables/tables.sql
