@@ -30,7 +30,7 @@
 
 		if ( "OK" = $result->status )
 		{
-			return $result->set;
+			return $result->results;
 		}
 		else
 		{

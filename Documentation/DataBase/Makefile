@@ -1,4 +1,4 @@
-all: dirs doco tables views fixed_data stored_procedures
+all: dirs tables views fixed_data stored_procedures
 
 dirs:
 	mkdir -p _SQL/01Tables

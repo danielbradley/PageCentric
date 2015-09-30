@@ -2,6 +2,13 @@
 
 class Content
 {
+	static function HasHTMFor( $page_index, $key, $content_path = CONTENT_PATH )
+	{
+		$f = $content_path . "/" . $page_index . "/" . $key . ".htm";
+		
+		return file_exists( $f );
+	}
+
 	static function IsHTMFor( $page_index, $key, $content_path = CONTENT_PATH )
 	{
 		$f = $content_path . "/" . $page_index . "/" . $key . ".htm";

@@ -25,13 +25,12 @@ DROP   PROCEDURE Logs_Prime;
 DELIMITER //
 CREATE PROCEDURE Logs_Prime
 (
-  $sid      CHAR(64),
-  $source       TEXT,
-  $message      TEXT
+    $sid       CHAR(64),
+    $source        TEXT,
+    $message       TEXT,
+OUT $CALL_ID    INT(11)
 )
 BEGIN
-
-DECLARE $CALL_ID INT;
 
 SELECT MAX( CALL_ID ) INTO $CALL_ID FROM logs;
 
