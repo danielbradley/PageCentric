@@ -8,7 +8,7 @@ BEGIN
 DECLARE $salt      TEXT;
 DECLARE $phash1    TEXT;
 DECLARE $phash2    TEXT;
-DECLARE $invalid   TEXT;
+DECLARE $invalid    INT;
 DECLARE $sessionid TEXT;
 
 IF @@read_only THEN
@@ -48,7 +48,7 @@ ELSE
 
             IF $invalid > 4 AND "" != $password THEN
 
-                SET @bougus = SLEEP( $invalid );
+                SET @bougs = SLEEP( $invalid );
                 SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'INVALID_LOGINS';
 
             ELSE

@@ -108,6 +108,8 @@ class ReplicantDB
 				//
 				//\http_response_code( 501 );
 			}
+
+			//error_log( $result['error'] );
 		}
 		
 		return (object) $result;

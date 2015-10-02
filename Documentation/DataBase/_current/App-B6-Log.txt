@@ -25,10 +25,10 @@ DROP   PROCEDURE Logs_Prime;
 DELIMITER //
 CREATE PROCEDURE Logs_Prime
 (
-    $sid       CHAR(64),
-    $source        TEXT,
-    $message       TEXT,
-OUT $CALL_ID    INT(11)
+      $sid       CHAR(64),
+      $source        TEXT,
+      $message       TEXT,
+INOUT $CALL_ID    INT(11)
 )
 BEGIN
 
@@ -45,7 +45,7 @@ INSERT INTO logs
 VALUES
   (       0, $CALL_ID,  NOW(), 'CALL', $source, $message );
 
-SELECT $CALL_ID AS CALL_ID;
+#SELECT $CALL_ID AS CALL_ID;
 
 END
 //
