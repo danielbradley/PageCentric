@@ -43,7 +43,7 @@ class Page
 
 		define( "REQUEST_URI",     Page::initialise_constant( $_SERVER["REQUEST_URI"]  ) );
 		define( "REDIRECT_URL",    Page::initialise_constant( $redirect_url            ) );
-		define( "HTTP_USER_AGENT", $_SERVER["HTTP_USER_AGENT"] );
+		define( "HTTP_USER_AGENT", array_get( $_SERVER, "HTTP_USER_AGENT" ) );
 
 		if ( ! defined( "DEBUG" ) ) define( "DEBUG", false );
 	}
@@ -657,7 +657,7 @@ class Page
 	
 		return (bool)preg_match('#\b(ip(hone|od)|android\b.+\bmobile|opera m(ob|in)i|windows (phone|ce)|blackberry'.
                     '|s(ymbian|eries60|amsung)|p(alm|rofile/midp|laystation portable)|nokia|fennec|htc[\-_]'.
-                    '|up\.browser|[1-4][0-9]{2}x[1-4][0-9]{2})\b#i', $_SERVER['HTTP_USER_AGENT'] );
+                    '|up\.browser|[1-4][0-9]{2}x[1-4][0-9]{2})\b#i', HTTP_USER_AGENT );
 	}
 
 	static function determineBrowser( $http_user_agent )

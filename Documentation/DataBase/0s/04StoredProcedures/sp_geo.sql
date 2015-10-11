@@ -34,3 +34,33 @@ return $distance;
 
 END
 ;
+CREATE FUNCTION KilometresBetween
+(
+  $lat1  FLOAT,
+  $lon1  FLOAT,
+  $lat2  FLOAT,
+  $lon2  FLOAT
+)
+RETURNS FLOAT
+DETERMINISTIC
+BEGIN
+
+return DistanceBetween( $lat1, $lon1, $lat2, $lon2 );
+
+END
+;
+CREATE FUNCTION MetresBetween
+(
+  $lat1  FLOAT,
+  $lon1  FLOAT,
+  $lat2  FLOAT,
+  $lon2  FLOAT
+)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+
+return CEIL( KilometresBetween( $lat1, $lon1, $lat2, $lon2 ) * 1000 );
+
+END
+;
