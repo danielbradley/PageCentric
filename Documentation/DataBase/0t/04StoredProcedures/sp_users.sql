@@ -1,8 +1,336 @@
+CREATE PROCEDURE users_uid_create( $Type VARCHAR(20) )
+BEGIN
 
+IF @@read_only THEN
 
-~sp_users~
-DROP   PROCEDURE users_create_quietly;
-delimiter //
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	INSERT INTO users_uids (type) VALUES ( $Type );
+	SELECT LAST_INSERT_ID() AS USER;
+
+END IF;
+
+END
+;
+CREATE PROCEDURE users_create
+(
+$Email                     CHAR(99),
+$Password                  CHAR(99),
+$Given_name                CHAR(50),
+$Family_name               CHAR(50),
+$Type                      CHAR(20)
+)
+BEGIN
+
+DECLARE $USER   INT;
+DECLARE $salt   TEXT;
+DECLARE $uhash  TEXT;
+DECLARE $phash  TEXT;
+DECLARE $status TEXT;
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	IF ! Users_Exists( $Email ) THEN
+
+        INSERT INTO users_uids (type) VALUES ( $Type );
+
+        SET $USER  = LAST_INSERT_ID();
+        SET $salt  = generate_salt();
+        SET $uhash = Users_Compute_Hash( $salt, $Email    );
+        SET $phash = Users_Compute_Hash( $salt, $Password );
+
+        INSERT INTO users
+            (  USER,  email, created,  user_salt, user_hash, password_hash, send_confirmation,   user_status,  given_name,  family_name )
+        VALUES
+            ( $USER, $Email,   NOW(),      $salt,    $uhash,        $phash,                 1, "UNCONFIRMED", $Given_name, $Family_name );
+
+        IF Users_Exists( $Email ) THEN
+
+            SELECT "OK" AS status, $USER AS USER;
+
+        ELSE
+
+            SELECT "ERROR" AS status, "UNEXPECTED_ERROR" AS message;
+
+        END IF;
+
+	ELSE
+
+        SELECT "ERROR" AS status, "USER_EXISTS" AS message;
+
+	END IF;
+
+END IF;
+
+END
+;
+CREATE PROCEDURE Users_Retrieve
+(
+$Sid                           CHAR(64),
+$USER                           INT(11)
+)
+BEGIN
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+	IF $USER = @USER THEN
+
+		SELECT * FROM users WHERE USER=$USER;
+
+	END IF;
+
+END IF;
+
+END
+;
+CREATE PROCEDURE Users_Update
+(
+$Sid                          CHAR(64),
+$USER                          INT(11),
+$new_email                    CHAR(99),
+$new_given_name               CHAR(50),
+$new_family_name              CHAR(50)
+)
+BEGIN
+
+DECLARE $email             CHAR(99);
+DECLARE $email_provisional CHAR(99);
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+	IF $USER = @USER OR "ADMIN" = @idtype THEN
+
+		SELECT email             INTO $email             FROM users WHERE USER=$USER;
+		SELECT email_provisional INTO $email_provisional FROM users WHERE USER=$USER;
+
+		IF $new_email != @email THEN
+			SET $email_provisional = $new_email;
+		END IF;
+
+		UPDATE users
+		SET email_provisional=$email_provisional, given_name=$new_given_name, family_name=$new_family_name
+		WHERE USER=$USER;
+
+	END IF;
+
+END IF;
+
+END
+;
+CREATE FUNCTION users_verify_credentials
+(
+  $Email              CHAR(99),
+  $Password           CHAR(99)
+)
+RETURNS BOOL
+READS SQL DATA
+BEGIN
+
+DECLARE $ret    BOOL;
+DECLARE $salt   TEXT;
+DECLARE $phash1 TEXT;
+DECLARE $phash2 TEXT;
+
+SET $ret = False;
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	IF EXISTS( SELECT * FROM users WHERE email=$Email ) THEN
+
+		SELECT user_salt     INTO $salt   FROM users WHERE email=$Email;
+		SELECT password_hash INTO $phash1 FROM users WHERE email=$Email;
+
+		SET $phash2 = Users_Compute_Hash( $salt, $Password );
+
+		IF $phash1 = $phash2 THEN
+			SET $ret = True;
+		END IF;
+
+	END IF;
+
+END IF;
+
+return $ret;
+
+END
+;
+CREATE FUNCTION Users_Check_Password
+(
+  $USER                             INT(11),
+  $Password                        CHAR(99)
+)
+RETURNS BOOLEAN
+READS SQL DATA
+BEGIN
+
+DECLARE $valid BOOLEAN DEFAULT FALSE;
+DECLARE $email TEXT;
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	SELECT email INTO $email FROM users WHERE USER=$USER;
+
+	SET $valid = users_verify_credentials( $email, $Password );
+
+END IF;
+
+return $valid;
+
+END
+;
+CREATE PROCEDURE users_change_password
+(
+  $Email       CHAR(99),
+  $OldPassword CHAR(99),
+  $NewPassword CHAR(99)
+)
+BEGIN
+
+DECLARE ret   BOOL;
+DECLARE salt  TEXT;
+DECLARE uhash TEXT;
+DECLARE phash TEXT;
+
+SET ret = False;
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	IF users_verify_credentials( $Email, $OldPassword ) THEN
+
+		SET salt  = generate_salt();
+		SET uhash = Users_Compute_Hash( salt, $Email    );
+		SET phash = Users_Compute_Hash( salt, $NewPassword );
+
+		UPDATE users
+		SET user_salt=salt, user_hash=uhash, password_hash=phash
+		WHERE email=$Email;
+
+		SET ret = True;
+
+	END IF;
+
+	SELECT ret AS success;
+
+END IF;
+
+END
+;
+CREATE PROCEDURE users_authorise_sessionid
+(
+      $Sid          CHAR(64),
+  OUT $Email        CHAR(99),
+  OUT $USER          INT(11),
+  OUT $IDType    VARCHAR(20)
+)
+BEGIN
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	IF Users_Sessions_Verify( $Sid ) THEN
+
+		CALL Users_Sessions_Extend_Expiry( $Sid );
+
+		SELECT email    INTO $Email    FROM users_sessions WHERE sid      = $Sid;
+		SELECT USER     INTO $USER     FROM users          WHERE email    = $Email;
+		SELECT type     INTO $IDType   FROM users_uids     WHERE USER     = $USER;
+
+	ELSE
+
+		CALL Users_Sessions_Terminate( $Sid );
+
+	END IF;
+
+END IF;
+
+END
+;
+CREATE PROCEDURE users_authorize_sessionid
+(
+      $Sid          CHAR(64),
+  OUT $Email        CHAR(99),
+  OUT $USER          INT(11),
+  OUT $IDType    VARCHAR(20)
+)
+BEGIN
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+    CALL Users_Authorise_Sessionid( $Sid, $Email, $USER, $IDType );
+
+END IF;
+
+END
+;
+CREATE PROCEDURE Users_Authenticate
+(
+  $Sid CHAR(64)
+)
+BEGIN
+
+DECLARE $read_only BOOL;
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+	IF Users_Sessions_Verify( $Sid ) THEN
+
+	  CALL Users_Sessions_Extend_Expiry( $Sid );
+
+	  SELECT email, USER, given_name, family_name, type AS idtype, last_login, user_status, user_hash, $read_only AS read_only
+	  FROM users_sessions
+	  LEFT JOIN view_users USING (email) WHERE sid=$Sid;
+
+	ELSE
+
+	  CALL Users_Sessions_Terminate( $Sid );
+
+	END IF;
+
+END IF;
+
+END
+;
 CREATE PROCEDURE users_create_quietly
 (
 $Email                     CHAR(99),
@@ -43,13 +371,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Activation_Sent;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Activation_Sent
 (
   $Email              CHAR(99),
@@ -76,14 +398,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
-~sp_users~
-DROP   PROCEDURE users_change_password_with_USER;
-DELIMITER //
+;
 CREATE PROCEDURE users_change_password_with_USER
 (
   $USER         INT(11),
@@ -111,13 +426,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_users~
-DROP   PROCEDURE users_admin_reset_password;
-DELIMITER //
+;
 CREATE PROCEDURE users_admin_reset_password
 (
   $email        CHAR(99),
@@ -159,13 +468,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_users~
-DROP   PROCEDURE users_reset_password;
-DELIMITER //
+;
 CREATE PROCEDURE users_reset_password
 (
   $Sid          CHAR(64),
@@ -204,14 +507,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
-~sp_users~
-DROP FUNCTION   Users_Exists;
-delimiter //
+;
 CREATE FUNCTION Users_Exists( $Email CHAR(99) )
 RETURNS BOOLEAN
 READS SQL DATA
@@ -232,13 +528,7 @@ END IF;
 return $exists;
 
 END
-//
-delimiter ;
-~
-
-~sp_users~
-DROP   PROCEDURE users_create_admin;
-DELIMITER //
+;
 CREATE PROCEDURE users_create_admin
 (
   $password                      CHAR(99)
@@ -262,14 +552,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
-~sp_users~
-DROP   PROCEDURE Users_Resend_Activation;
-delimiter //
+;
 CREATE PROCEDURE Users_Resend_Activation
 (
 $email                     CHAR(99)
@@ -295,13 +578,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Retrieve_All;
-delimiter //
+;
 CREATE PROCEDURE Users_Retrieve_All
 (
 $Sid                           CHAR(64)
@@ -329,13 +606,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Retrieve_By_User_Hash;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Retrieve_By_User_Hash
 (
   $sid                             CHAR(64),
@@ -360,13 +631,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Retrieve_Unsent;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Retrieve_Unsent
 ()
 BEGIN
@@ -382,13 +647,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Retrieve_Unsent_With_Names;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Retrieve_Unsent_With_Names
 ()
 BEGIN
@@ -404,14 +663,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
-~sp_users~
-DROP   PROCEDURE Users_Update_Sent;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Update_Sent
 (
   $Email              CHAR(99)
@@ -429,20 +681,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
-...         Table: users (session reliant)
-
-....            Stored Procedures
-
-.....				Users Retrieve Single
-
-~sp_users~
-DROP   PROCEDURE Users_Retrieve_Single;
-delimiter //
+;
 CREATE PROCEDURE Users_Retrieve_Single
 (
   $Sid                       CHAR(64),
@@ -467,15 +706,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-.....				Users Update name
-
-~sp_users~
-DROP   PROCEDURE Users_Update_Name;
-delimiter //
+;
 CREATE PROCEDURE Users_Update_Name
 (
   $Sid                       CHAR(64),
@@ -502,13 +733,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Retrieve_Signups;
-delimiter //
+;
 CREATE PROCEDURE Users_Retrieve_Signups
 (
 $days INT(11)
@@ -526,34 +751,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-
-
-...			Table: requested invites
-
-~tables~
-DROP   TABLE users_requested_invites;
-CREATE TABLE users_requested_invites
-(
-REQUEST                             INT(11)  AUTO_INCREMENT,
-email                           VARCHAR(99)  NOT NULL DEFAULT '',
-time_of_request                DATETIME,
-invite_sent                     BOOLEAN,
-
-PRIMARY KEY (REQUEST)
-);
-~
-
-....			Stored Procedures
-
-.....				Procedure: Users Requested Invites Replace
-
-~sp_users~
-DROP PROCEDURE   Users_Requested_Invites_Replace;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Requested_Invites_Replace
 (
   $email                         CHAR(99)
@@ -575,15 +773,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-.....				Procedure: Users Requested Invites Retrieve
-
-~sp_users~
-DROP   PROCEDURE Users_Requested_Invites_Retrieve;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Requested_Invites_Retrieve
 (
   $sid                           CHAR(64)
@@ -607,32 +797,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
-...         Table: users activations
-
-~tables~
-DROP   TABLE users_activations;
-CREATE TABLE users_activations (
-
-USER                                INT(11)  NOT NULL,
-timestamp                     TIMESTAMP      NOT NULL,
-token                           VARCHAR(64)  NOT NULL,
-
-PRIMARY KEY (USER)
-);
-~
-
-....                Stored Procedures
-
-.....                   Users Activations Create
-
-~sp_users~
-DROP   PROCEDURE Users_Activations_Create;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Activations_Create
 (
   $email                           CHAR(99)
@@ -661,13 +826,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Activations_Confirm_Account;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Activations_Confirm_Account
 (
   $token                           CHAR(64)
@@ -701,13 +860,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Activations_Confirm_Account_And_Authenticate;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Activations_Confirm_Account_And_Authenticate
 (
   $token                           CHAR(64)
@@ -749,35 +902,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
-
-
-...			Table: users reset passwords
-
-~tables~
-DROP   TABLE users_send_resets;
-CREATE TABLE users_send_resets
-(
-USER                                INT(11)  NOT NULL,
-timestamp                     TIMESTAMP      NOT NULL,
-token                           VARCHAR(64)  NOT NULL,
-sent                          TIMESTAMP      NOT NULL,
-
-PRIMARY KEY (USER)
-);
-~
-
-....			Stored Procedures
-
-.....				Users Reset Passwords
-
-~sp_users~
-DROP   PROCEDURE Users_Send_Resets_Replace;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Send_Resets_Replace
 (
   $email      CHAR(99)
@@ -804,13 +929,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Send_Resets_Retrieve;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Send_Resets_Retrieve
 ()
 BEGIN
@@ -826,13 +945,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Send_Resets_Sent;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Send_Resets_Sent
 (
   $email  CHAR(99)
@@ -854,14 +967,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
-~sp_users~
-DROP   PROCEDURE Users_Send_Resets_Reset_Password;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Send_Resets_Reset_Password
 (
   $token                           CHAR(64),
@@ -907,13 +1013,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_users~
-DROP   FUNCTION Users_Send_Resets_Exists;
-DELIMITER //
+;
 CREATE FUNCTION Users_Send_Resets_Exists
 (
   $token      CHAR(64)
@@ -937,39 +1037,7 @@ END IF;
 return $exists;
 
 END
-//
-DELIMITER ;
-~
-
-
-
-
-
-
-
-
-
-...         Table: alternate emails
-
-~tables~
-DROP   TABLE users_alternate_emails;
-CREATE TABLE users_alternate_emails (
-
-USER                            INT(11)  NOT NULL AUTO_INCREMENT,
-email                       VARCHAR(99)  NOT NULL DEFAULT '',
-token                       VARCHAR(64)  NOT NULL,
-
-PRIMARY KEY (USER,email)
-);
-~
-
-....            Stored Procedures
-
-.....               Users Alternate Emails Create
-
-~sp_users~
-DROP   PROCEDURE Users_Alternate_Emails_Create;
-delimiter //
+;
 CREATE PROCEDURE Users_Alternate_Emails_Create
 (
   $Sid                       CHAR(64),
@@ -995,16 +1063,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-
-.....                   Users Alternate Emails Delete
-
-~sp_users~
-DROP   PROCEDURE Users_Alternate_Emails_Delete;
-delimiter //
+;
 CREATE PROCEDURE Users_Alternate_Emails_Delete
 (
   $Sid                       CHAR(64),
@@ -1028,16 +1087,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-
-.....                   Users
-
-~sp_users~
-DROP   PROCEDURE Users_Alternate_Emails_Retrieve_By_USER;
-delimiter //
+;
 CREATE PROCEDURE Users_Alternate_Emails_Retrieve_By_USER
 (
   $Sid                       CHAR(64),
@@ -1060,32 +1110,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-...			Table: Users_Termination_Schedule
-
-~tables~
-DROP   TABLE users_termination_schedule;
-CREATE TABLE users_termination_schedule
-(
-
-USER                            INT(11)  NOT NULL,
-mark                       DATETIME      NOT NULL,
-time_of_termination        DATETIME      NOT NULL,
-
-PRIMARY KEY (USER)
-);
-~
-
-....			Stored Procedures
-
-o	Users_Termination_Schedule_Replace
-
-~sp_users~
-DROP   PROCEDURE Users_Termination_Schedule_Replace;
-delimiter //
+;
 CREATE PROCEDURE Users_Termination_Schedule_Replace
 (
   $Sid                        CHAR(64),
@@ -1121,13 +1146,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Termination_Schedule_Retrieve;
-delimiter //
+;
 CREATE PROCEDURE Users_Termination_Schedule_Retrieve
 ()
 BEGIN
@@ -1145,25 +1164,7 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-
-...			Table: users deleted
-
-~tables~
-DROP   TABLE users_deleted;
-CREATE TABLE users_deleted
-(
-USER         INT(11),
-DELETED_USER INT(11)
-);
-~
-
-~sp_users~
-DROP   PROCEDURE Users_Delete;
-delimiter //
+;
 CREATE PROCEDURE Users_Delete
 (
   $Sid  CHAR(64),
@@ -1197,11 +1198,4 @@ ELSE
 END IF;
 
 END
-//
-delimiter ;
-~
-
-
-
-
-
+;

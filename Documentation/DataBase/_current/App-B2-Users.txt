@@ -49,14 +49,17 @@ USER                            INT(11)  NOT NULL,
 email                       VARCHAR(99)  NOT NULL,
 email_provisional           VARCHAR(99)  NOT NULL DEFAULT '',
 created                    DATETIME      NOT NULL,
-last_login                 DATETIME      NOT NULL,
-invalid_logins                  INT(11)  NOT NULL,
+last_login                 DATETIME      NOT NULL DEFAULT 0,
+invalid_logins                  INT(11)  NOT NULL DEFAULT 0,
 
 user_salt                   VARCHAR(64)  NOT NULL,
 user_hash                   VARCHAR(64)  NOT NULL,
 password_hash               VARCHAR(64)  NOT NULL,
 user_status                 VARCHAR(20)  NOT NULL,
-sent                           BOOL      NOT NULL,
+send_confirmation              BOOL      NOT NULL DEFAULT 0,
+sent                           BOOL      NOT NULL DEFAULT 0,
+confirmation_sent              DATETIME  NOT NULL DEFAULT 0,
+confirmed                      DATETIME  NOT NULL DEFAULT 0,
 
 given_name                  VARCHAR(50)  NOT NULL,
 family_name                 VARCHAR(50)  NOT NULL,
@@ -139,9 +142,9 @@ ELSE
         SET $phash = Users_Compute_Hash( $salt, $Password );
 
         INSERT INTO users
-            (  USER,  email, created, last_login, invalid_logins, user_salt, user_hash, password_hash, sent,   user_status,  given_name,  family_name )
+            (  USER,  email, created,  user_salt, user_hash, password_hash, send_confirmation,   user_status,  given_name,  family_name )
         VALUES
-            ( $USER, $Email,   NOW(),          0,              0,     $salt,    $uhash,        $phash,    0, "UNCONFIRMED", $Given_name, $Family_name );
+            ( $USER, $Email,   NOW(),      $salt,    $uhash,        $phash,                 1, "UNCONFIRMED", $Given_name, $Family_name );
 
         IF Users_Exists( $Email ) THEN
 
