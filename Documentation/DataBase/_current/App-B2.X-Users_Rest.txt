@@ -424,7 +424,7 @@ IF @@read_only THEN
 
 ELSE
 
-	UPDATE users SET sent=1 WHERE email=$Email OR email_provisional=$Email;
+	UPDATE users SET sent=1, confirmation_sent=NOW() WHERE email=$Email OR email_provisional=$Email;
 
 END IF;
 

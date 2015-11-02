@@ -403,14 +403,13 @@ class Accounts extends Model
 	{
 		$ret = false;
 	
-		$email     = array_get( $request, "email"     );
 		$password0 = array_get( $request, "password0" );
 		$password1 = array_get( $request, "password1" );
 		$password2 = array_get( $request, "password2" );
 
 		if ( $password1 == $password2 )
 		{
-			$sql = "Users_Change_Password( '$email', '$password0', '$password1' )";
+			$sql = "Users_Change_Password( '$sid', '$password0', '$password1' )";
 
 			error_log( $sql );
 
