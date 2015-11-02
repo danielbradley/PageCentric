@@ -116,7 +116,9 @@ class JSON3
 
 	static function EncodeString( $string )
 	{
-		echo "\"$string\"";
+		$escaped = str_replace( "\\", "\\\\", $string );
+
+		echo "\"$escaped\"";
 	}
 
 	static function EncodeValue( $value )
