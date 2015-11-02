@@ -2,6 +2,45 @@
 
 class Content
 {
+	static function FindHTMFor( $page_index, $key_array, $content_path = CONTENT_PATH )
+	{
+		$htm = "";
+
+		$key = implode( "-", $key_array );
+
+		if ( self::HasHTMFor( $page_index, $key, $content_path ) )
+		{
+			$htm = self::getHTMFor( $page_index, $key, $content_path );
+		}
+		else
+		{
+			$n = count( $key_array );
+		
+			for( $i = $n-1; 0 < $i; $i-- )
+			{
+				$key = $key_array[0] . "-" . $key_array[$i];
+
+				if ( self::HasHTMFor( $page_index, $key, $content_path ) )
+				{
+					$htm = self::getHTMFor( $page_index, $key, $content_path );
+					break;
+				}
+			}
+		
+			if ( ! $htm )
+			{
+				$key = $key_array[0];
+
+				if ( self::HasHTMFor( $page_index, $key, $content_path ) )
+				{
+					$htm = self::getHTMFor( $page_index, $key, $content_path );
+				}
+			}
+		}
+
+		return $htm;
+	}
+
 	static function HasHTMFor( $page_index, $key, $content_path = CONTENT_PATH )
 	{
 		$f = $content_path . "/" . $page_index . "/" . $key . ".htm";
