@@ -16,7 +16,7 @@ class Content
 		{
 			$n = count( $key_array );
 		
-			for( $i = $n-1; 0 < $i; $i-- )
+			for( $i = 1; $i < $n; $i++ )
 			{
 				$key = $key_array[0] . "-" . $key_array[$i];
 
@@ -44,8 +44,17 @@ class Content
 	static function HasHTMFor( $page_index, $key, $content_path = CONTENT_PATH )
 	{
 		$f = $content_path . "/" . $page_index . "/" . $key . ".htm";
-		
-		return file_exists( $f );
+
+		if ( file_exists( $f ) )
+		{
+			return true;
+		}
+		else
+		{
+			error_log( "Could not find: $f" );
+			
+			return false;
+		}
 	}
 
 	static function IsHTMFor( $page_index, $key, $content_path = CONTENT_PATH )

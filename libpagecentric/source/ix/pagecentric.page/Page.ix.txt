@@ -1,0 +1,81 @@
+
+
+
+
+	public comp Complex
+	{
+		@
+	}
+
+
+
+
+	public class Page
+	{
+		@request  : Dictionary*;
+		@out      : Printer*;
+		@debug    : Printer*;
+		@viva     : Viva*;
+		@classes  : String*;
+		@pageID   : String*;
+		@pagePath : String*;
+		@browser  : String*;
+		@title    : String*;
+		@modals   : Array<Modal>*;
+		@isMobile : boolean;
+	}
+
+
+
+
+	public new()
+	{
+		@out   = new Printer();
+		@debug = DEBUG ? new Printer() : new NullPrinter();
+		@debug.startBuffering();
+
+		checkDB();
+
+		@classes  = "";
+		@request  = Input.FilterInput     ( HTTP#Request, @debug );
+		@pageID   = Page.GeneratePageID   ( HTTP#RedirectURL );
+		@pagePath = Page.GeneratePagePath ( HTTP#RedirectURL );
+		@browser  = Page.DetermineBrowser ( HTTP#UserAgent   );
+		@isMobile = Page.DetermineIfMobile( HTTP#UserAgent   );
+		
+		appendClass( @browser );
+
+		@viva   = new Viva( @request, @debug );
+		@title  = "";
+		@modals = new array();
+
+		warnIfUnsupportedBrowser();
+	}
+
+
+
+
+	public checkDB()
+	{}
+
+
+
+
+	private static GeneratePageID( redirectURL: String& ) : String*
+	{
+		var uri : String*;
+		    uri = redirectURL.substring( start: 1 );
+		    uri = uri.replace( "/", "-" );
+		    uri = uri + "index";
+
+		return uri;
+	}
+
+
+
+
+	private static GeneratePagePath()
+		
+
+
+

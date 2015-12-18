@@ -459,8 +459,10 @@ class Page
 				$out->inprint( "<div id='page'>" );
 				{
 					$this->pageContent( $out );
+					$this->bodySpread( $out );
 				}
 				$out->outprint( "</div>" );
+
 
 				$this->bodyFooter( $out );
 			}
@@ -520,9 +522,9 @@ class Page
 	
 	function middleContent( $out ) {}
 
-	function bodyFooter( $out )
-	{
-	}
+	function bodySpread( $out ) {}
+
+	function bodyFooter( $out ) {}
 
 	function bodyModalBackground( $out )
 	{

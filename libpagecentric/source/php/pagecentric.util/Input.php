@@ -83,6 +83,7 @@ class Input
 			$value = get_magic_quotes_gpc() ? $value : addslashes( $value );
 			$value = DBi_escape( $value );
 
+			$value = str_replace(   "\n", "<br>", $value );
 			$value = str_replace( "\\\\", "&#92;", $value );
 
 			return $value;

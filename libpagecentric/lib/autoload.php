@@ -38,10 +38,6 @@ spl_autoload_register( function ( $classname )
 		include( "pagecentric.html.autoform/AutoFormButton.php" );
 		break;
 
-	case 'PostBox':
-		include( "pagecentric.email/PostBox.php" );
-		break;
-
 	case 'FilesController':
 		include( "pagecentric.files.controllers/FilesController.php" );
 		break;
@@ -202,6 +198,14 @@ spl_autoload_register( function ( $classname )
 		include( "pagecentric.util/Files.php" );
 		break;
 
+	case 'EchoJSON':
+		include( "pagecentric.util/EchoJSON.php" );
+		break;
+
+	case 'EncodeJSON':
+		include( "pagecentric.util/EncodeJSON.php" );
+		break;
+
 	case 'SessionSP':
 		include( "pagecentric.util/SessionSP.php" );
 		break;
@@ -216,6 +220,10 @@ spl_autoload_register( function ( $classname )
 
 	case 'Input':
 		include( "pagecentric.util/Input.php" );
+		break;
+
+	case 'JSON4':
+		include( "pagecentric.util/JSON4.php" );
 		break;
 
 	case 'HTML':
@@ -252,6 +260,14 @@ spl_autoload_register( function ( $classname )
 
 	case 'Page':
 		include( "pagecentric.page/Page.php" );
+		break;
+
+	case 'SendMessages':
+		include( "pagecentric.messaging/SendMessages.php" );
+		break;
+
+	case 'PostBox':
+		include( "pagecentric.messaging/PostBox.php" );
 		break;
 
 	case 'Dialog':
@@ -376,6 +392,10 @@ spl_autoload_register( function ( $classname )
 
 	case 'CheckboxGroup':
 		include( "pagecentric.html.forms/CheckboxGroup.php" );
+		break;
+
+	case 'TransmitSMSAPI':
+		include( "wholesalesms/TransmitSMSAPI.php" );
 		break;
 
 	case 'AdminUsers':
