@@ -39,7 +39,6 @@ given_name                  VARCHAR(50)  NOT NULL,
 family_name                 VARCHAR(50)  NOT NULL,
 
 visits                          INT(11)  NOT NULL DEFAULT 1,
-ts_users                      TIMESTAMP           DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
 PRIMARY KEY (email), UNIQUE KEY (USER)
 );
