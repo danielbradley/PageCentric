@@ -11,26 +11,38 @@ DELIMITER //
 CREATE FUNCTION GET_JTH
 (
   $Text                   TEXT,
-  $Delimiter              CHAR(10),
+  $Delimiter              TEXT,
   $I                      INT(11)
 )
 RETURNS TEXT
 DETERMINISTIC
 BEGIN
 
-DECLARE _tmp      TEXT DEFAULT '';
-DECLARE _test     TEXT DEFAULT '';
+DECLARE $ret      CHAR(99) DEFAULT '';
+DECLARE $tmp      CHAR(99) DEFAULT '';
+DECLARE $test     CHAR(99) DEFAULT '';
 
-SELECT SUBSTRING_INDEX( $Text, $Delimiter, $I )     INTO _tmp;
-SELECT SUBSTRING_INDEX( $Text, $Delimiter, $I - 1 ) INTO _test;
+IF 0 = LENGTH( $Delimiter ) THEN
 
-IF _tmp = _test THEN
-    SET _tmp = "";
-ELSE
-    SELECT SUBSTRING_INDEX( _tmp, $Delimiter, -1 ) INTO _tmp;
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'EMPTY_DELIMITER';
+
 END IF;
 
-RETURN _tmp;
+#
+#	Compare whether substring returned is same for i and i-1.
+#	If so have run out of components, set return as "".
+#
+
+SET $tmp  = SUBSTRING_INDEX( $Text, $Delimiter, $I );
+SET $test = SUBSTRING_INDEX( $Text, $Delimiter, $I - 1 );
+
+IF $tmp != $test THEN
+
+    SET $ret = SUBSTRING_INDEX( $tmp, $Delimiter, -1 );
+
+END IF;
+
+RETURN $ret;
 
 END
 //
@@ -464,6 +476,60 @@ DECLARE $read_only BOOLEAN DEFAULT 0;
 SELECT @@global.read_only INTO $read_only;
 
 return $read_only;
+
+END
+//
+DELIMITER ;
+~
+
+~sp_util~
+DROP   FUNCTION Get_Time;
+DELIMITER //
+CREATE FUNCTION Get_Time
+(
+   $datetime TEXT
+)
+RETURNS TIME
+DETERMINISTIC
+BEGIN
+
+DECLARE $time TIME DEFAULT 0;
+DECLARE $one  CHAR(10);
+DECLARE $two  CHAR(10);
+DECLARE $use  CHAR(10);
+
+SET $one = GET_JTH( $datetime, " ", 1 );
+SET $two = GET_JTH( $datetime, " ", 2 );
+
+IF "" != $two THEN
+
+	SET $use = $two;
+
+ELSE
+
+	SET $use = $one;
+
+END IF;
+
+IF 4 = LENGTH( $use ) THEN
+
+	SET $time = CONCAT( SUBSTR( $use, 1, 2 ), ":", SUBSTR( $use, 3, 2 ), ":00" );
+
+ELSEIF 5 = LENGTH( $use ) THEN
+
+	SET $time = CONCAT( $use, ":00" );
+
+ELSEIF 8 = LENGTH( $use ) THEN
+
+	SET $time = $use;
+
+ELSE
+
+    SET $time = "12:59:59";
+
+END IF;
+
+return $time;
 
 END
 //
