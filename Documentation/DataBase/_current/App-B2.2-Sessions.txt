@@ -55,11 +55,38 @@ CREATE PROCEDURE Users_Sessions_Replace
 )
 BEGIN
 
+SET @status    = "";
+SET @sessionid = "";
+SET @USER      = 0;
+SET @idtype    = "";
+
+CALL Users_Sessions_Replace_Inout( $email, $password, @status, @sessionid, @USER, @idtype );
+
+SELECT @status AS status, @sessionid AS sessionid, @USER AS USER, @idtype AS idtype;
+
+END
+//
+DELIMITER ;
+~
+
+~sp_sessions~
+DROP   PROCEDURE Users_Sessions_Replace_Inout;
+DELIMITER //
+CREATE PROCEDURE Users_Sessions_Replace_Inout
+(
+      $email                         CHAR(99),
+      $password                      CHAR(99),
+INOUT $status                        CHAR(99),
+INOUT $sessionid                     CHAR(64),
+INOUT $USER                           INT(11),
+INOUT $idtype                        CHAR(20)
+)
+BEGIN
+
 DECLARE $salt      TEXT;
 DECLARE $phash1    TEXT;
 DECLARE $phash2    TEXT;
 DECLARE $invalid    INT;
-DECLARE $sessionid TEXT;
 
 IF @@read_only THEN
 
@@ -90,7 +117,7 @@ ELSE
             REPLACE INTO users_sessions VALUES ( $sessionid, $email, NOW(), NOW(), UNIX_TIMESTAMP() + 1000 );
             UPDATE users SET invalid_logins = 0, last_login=NOW(), visits = visits + 1 WHERE email=$email;
 
-            SELECT "OK" AS status, $sessionid AS sessionid, USER, type AS idtype FROM view_users WHERE email=$email;
+            SELECT "OK", USER, type INTO $status, $USER, $idtype FROM view_users WHERE email=$email;
 
         ELSE
 
@@ -109,11 +136,11 @@ ELSE
 
         END IF;
 
-	ELSE
+    ELSE
 
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'INVALID_USER';
 
-	END IF;
+    END IF;
 
 END IF;
 
@@ -255,7 +282,7 @@ DROP   PROCEDURE Users_Sessions_Terminate;
 DELIMITER //
 CREATE PROCEDURE Users_Sessions_Terminate
 (
-  $Sid                             CHAR(64)
+  $Sid                             CHAR(99)
 )
 BEGIN
 
