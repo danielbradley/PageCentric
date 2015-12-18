@@ -65,6 +65,7 @@ given_name                  VARCHAR(50)  NOT NULL,
 family_name                 VARCHAR(50)  NOT NULL,
 
 visits                          INT(11)  NOT NULL DEFAULT 1,
+ts_users                      TIMESTAMP           DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
 PRIMARY KEY (email), UNIQUE KEY (USER)
 );
@@ -244,6 +245,31 @@ END IF;
 END
 //
 delimiter ;
+~
+
+~sp_users~
+DROP   FUNCTION Users_Get_Field;
+DELIMITER //
+CREATE FUNCTION Users_Get_Field
+(
+$USER                    INT(11),
+$field                  CHAR(99)
+)
+RETURNS TEXT
+READS SQL DATA
+BEGIN
+
+DECLARE $value TEXT DEFAULT '';
+
+CASE $field
+WHEN 'type' THEN SELECT type INTO $value FROM users_uids WHERE USER=$USER;
+END CASE;
+
+return $value;
+
+END
+//
+DELIMITER ;
 ~
 
 ~sp_users~
