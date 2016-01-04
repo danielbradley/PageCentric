@@ -80,7 +80,7 @@ class SendMessages
 		if ( file_exists( $filename ) )
 		{
 			$content      = file_get_contents( $filename );
-			$content      = string_replace( $content, $tuple );
+			$content      = string_replace( $content, $tuple, ("txt" == $format) );
 			$resource_dir = dirname( $filename );
 
 			if ( array_key_exists( "logo", $tuple ) )

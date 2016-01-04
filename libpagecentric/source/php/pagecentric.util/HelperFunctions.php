@@ -60,10 +60,12 @@ function string_contains( $hay, $needle )
 	return ( strpos( $hay, $needle ) !== false );
 }
 
-function string_replace( $text, $array )
+function string_replace( $text, $array, $entity_decode = false )
 {
 	foreach ( $array as $key => $value )
 	{
+		if ( $entity_decode ) $value = html_entity_decode( $value );
+
 		$text = str_replace( "%" . $key . "%", $value, $text );
 	}
 	
