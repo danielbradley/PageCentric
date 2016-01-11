@@ -2,16 +2,16 @@
 
 class PostBox
 {
-	static function SendSMS( $from, $to, $text )
+	static function SendSMS( $from, $to, $text, $test = false )
 	{
 		$success = false;
 
-		if ( SENDUSERMAIL )
+		if ( !$test && SENDUSERMAIL )
 		{
 			$to = self::Internationalise( $to );
 		}
 		else
-		if ( SENDDEMOMAIL )
+		if ( !$test && SENDDEMOMAIL )
 		{
 			$to = self::Internationalise( DEMO_MOBILE );
 			$text = "Demo: " . $text;
@@ -41,7 +41,7 @@ class PostBox
 		return $success;
 	}
 
-	static function SendEmail( $sender, $from, $to, $subject, $plain, $html, $bcc )
+	static function SendEmail( $sender, $from, $to, $subject, $plain, $html, $bcc, $test = false )
 	{
 		$success = false;
 
@@ -55,7 +55,7 @@ class PostBox
 				$sendgrid = new SendGrid( USE_SENDGRID_USER, USE_SENDGRID_PW );
 				$email    = new SendGrid\Email();
 
-				if ( SENDUSERMAIL )
+				if ( !$test && SENDUSERMAIL )
 				{
 					$address = new EmailAddress( $to );
 					

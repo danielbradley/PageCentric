@@ -6,6 +6,8 @@
 
 function DBi_callFunction( $database, $function, $debug )
 {
+	error_log( $function );
+
 	$debug->println( "<!-- DBi_callFunction( $database, $function ) start -->" );
 	$debug->indent();
 	{

@@ -2,7 +2,7 @@
 
 class SendMessages
 {
-	function sendAllMessages( $msgtype, $sql, $TID_name, $out, $debug )
+	function sendAllMessages( $msgtype, $sql, $TID_name, $out, $debug, $sendOne = false )
 	{
 		$unsent = force_array( DBi_callProcedure( DB, $sql, $debug ) );
 
@@ -15,21 +15,29 @@ class SendMessages
 				$email  = array_get( $tuple, "email"   );
 				$vendor = array_get( $tuple, "vendor"  );
 
-				if ( $this->createMessage( $msgtype, $TID, $email, $tuple, $out, $debug ) )
+				if ( $TID )
 				{
-					$out->println( "$now, '$msgtype', $email, $vendor, ok" );
+					if ( $this->createMessage( $msgtype, $TID, $email, $tuple, $out, $debug ) )
+					{
+						$out->println( "$now, '$msgtype', $email, $vendor, ok" );
+					}
+					else
+					{
+						$out->println( "$now, '$msgtype', $email, $vendor, error" );
+					}
+					if ( $sendOne ) break;
 				}
 				else
 				{
-					$out->println( "$now, '$msgtype', $email, $vendor, error" );
+					$out->println( "Error: tuple does not contain expected TID field: $TID_name" );
 				}
 			}
 		}
 	}
 
-	function sendMessage( $appname, $from, $to, $subject, $message, $html, $bcc )
+	function sendMessage( $appname, $from, $to, $subject, $message, $html, $bcc, $test = false )
 	{
-		return PostBox::SendEmail( $appname, $from, $to, $subject, $message, $html, $bcc );
+		return PostBox::SendEmail( $appname, $from, $to, $subject, $message, $html, $bcc, $test );
 	}
 
 	function sendMessageTest( $appname, $from, $to, $subject, $message, $html, $out )
@@ -44,9 +52,9 @@ class SendMessages
 		return false;
 	}
 
-	function sendSMS( $from, $to, $text )
+	function sendSMS( $from, $to, $text, $test = false )
 	{
-		return PostBox::SendSMS( $from, $to, $text );
+		return PostBox::SendSMS( $from, $to, $text, $test );
 	}
 
 	function getTemplate( $msgtype, $pattern, $format, $tuple, $out, $fallback = false )
