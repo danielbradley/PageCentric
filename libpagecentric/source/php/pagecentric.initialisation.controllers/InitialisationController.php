@@ -98,6 +98,8 @@ class InitialisationController extends Controller
 	
 		function perform_install_action( $label, $result )
 		{
+			error_log( "$label: $result" );
+
 			$checked = ("1" == $result) ? "checked='checked'" : "";
 
 			$check_box = "<input type='checkbox' $checked disabled>";
@@ -128,6 +130,7 @@ class InitialisationController extends Controller
 					{
 						$status = True;
 						$debug->println( "<!-- Created Database: $database_name -->" );
+						error_log( "Created Database: $database_name" );
 					} else {
 						$debug->println( "<!-- Could not create database! -->" );
 					}
@@ -187,6 +190,8 @@ class InitialisationController extends Controller
 	
 	function installTablesIn( $request, $debug, $sql_dir )
 	{
+		error_log( "Trying: $sql_dir" );
+	
 		$status = True;
 
 		$debug->println( "<!-- InstallController::installTables start ($sql_dir) -->" );
@@ -218,7 +223,8 @@ class InitialisationController extends Controller
 						{
 							if ( "_" == $file[0] )
 							{
-								$debug->println( "<!-- Trying to load: $file -->" );
+								error_log( "<!-- Trying to load: $file -->" );
+
 								$sql = SQL_loadfile( $sql_dir . "/" . $file );
 								if ( False !== $sql )
 								{
