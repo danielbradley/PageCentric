@@ -62,13 +62,19 @@ function string_contains( $hay, $needle )
 
 function string_replace( $text, $array, $entity_decode = false )
 {
-	foreach ( $array as $key => $value )
+	if ( is_string( $text ) && is_string( $array ) && is_string( $entity_decode ) )
 	{
-		if ( $entity_decode ) $value = html_entity_decode( $value );
-
-		$text = str_replace( "%" . $key . "%", $value, $text );
+		$text = str_replace( $array, $entity_decode, $text );
 	}
-	
+	else
+	{
+		foreach ( $array as $key => $value )
+		{
+			if ( $entity_decode ) $value = html_entity_decode( $value );
+
+			$text = str_replace( "%" . $key . "%", $value, $text );
+		}
+	}
 	return $text;
 }
 
