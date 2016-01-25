@@ -91,6 +91,12 @@ class SendMessages
 			$content      = string_replace( $content, $tuple, ("txt" == $format) );
 			$resource_dir = dirname( $filename );
 
+			if ( "txt" == $format )
+			{
+				$content = str_replace(       "<br>", "\n", $content );
+				$content = str_replace( "&gt;br&lt;", "\n", $content );
+			}
+
 			if ( array_key_exists( "logo", $tuple ) )
 			{
 				$logo_name  = array_get( $tuple, "logo" );
