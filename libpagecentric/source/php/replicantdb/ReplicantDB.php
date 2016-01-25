@@ -318,7 +318,14 @@ class ReplicantDB
 				$tuples = array();
 				while ( $row = mysqli_fetch_array( $resource, MYSQL_ASSOC ) )
 				{
-					$tuples[] = (object) $row;
+					if ( true )
+					{
+						$tuples[] = (object) $row;
+					}
+					else
+					{
+						$tuples[] = self::DecodeHTMLEntities( $row );
+					}
 				}
 
 				mysqli_free_result( $resource );
@@ -334,6 +341,22 @@ class ReplicantDB
 		}
 
 		return $tuples;
+	}
+
+	static function DecodeHTMLEntities( $tuple )
+	{
+		$row = array();
+	
+		foreach ( $tuple as $key => $val )
+		{
+			$decoded_key = "!!" . $key;
+			$decoded_val = html_entity_decode( $val );
+		
+			$row[$decoded_key] = $decoded_val;
+			$row[$key]         = $val;
+		}
+		
+		return (object) $row;
 	}
 
 	function _callFunction( $database, $sql_query, $debug )
