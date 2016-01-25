@@ -79,7 +79,7 @@ class Input
 		if ( is_string( $value ) )
 		{
 			$value = Input::unidecode( $value );
-			$value = htmlentities( $value, ENT_QUOTES, 'UTF-8', false );
+			$value =  htmlspecialchars( $value, ENT_QUOTES, 'UTF-8', false );
 			$value = get_magic_quotes_gpc() ? $value : addslashes( $value );
 			$value = DBi_escape( $value );
 
