@@ -1,13 +1,3 @@
-
-..		Module: Utility
-
-...			Stored Procedures
-
-....			Get Jth
-
-~sp_util~
-DROP   FUNCTION GET_JTH;
-DELIMITER //
 CREATE FUNCTION GET_JTH
 (
   $Text                   TEXT,
@@ -45,13 +35,7 @@ END IF;
 RETURN $ret;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION IFZERO;
-DELIMITER //
+;
 CREATE FUNCTION IFZERO
 (
   $id1         INT(11),
@@ -72,13 +56,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION IFNONE;
-DELIMITER //
+;
 CREATE FUNCTION IFNONE
 (
   $date       DATETIME,
@@ -99,13 +77,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION IFVOID;
-DELIMITER //
+;
 CREATE FUNCTION IFVOID
 (
   $text1          TEXT,
@@ -126,13 +98,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION Read_Only;
-DELIMITER //
+;
 CREATE FUNCTION Read_Only
 ()
 RETURNS BOOL
@@ -150,13 +116,7 @@ END IF;
 return $readonly;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION generate_salt;
-delimiter //
+;
 CREATE FUNCTION generate_salt
 ()
 RETURNS CHAR(64)
@@ -172,13 +132,7 @@ SET salt = SHA2( salt, 256 );
 return salt;
 
 END
-//
-delimiter ;
-~
-
-~sp_util~
-DROP   FUNCTION Users_Compute_Hash;
-delimiter //
+;
 CREATE FUNCTION Users_Compute_Hash
 (
   salt           CHAR(64),
@@ -199,13 +153,7 @@ SET hash   = SHA2( string, 256 );
 return hash;
 
 END
-//
-delimiter ;
-~
-
-~sp_util~
-DROP   FUNCTION My_Encrypt;
-delimiter //
+;
 CREATE FUNCTION My_Encrypt
 (
   enckey         TEXT,
@@ -222,13 +170,7 @@ SET hashkey = SHA2( HEX( DES_ENCRYPT( enckey ) ), 256 );
 return HEX( AES_ENCRYPT( value, hashkey ) );
 
 END
-//
-delimiter ;
-~
-
-~sp_util~
-DROP   FUNCTION My_Decrypt;
-delimiter //
+;
 CREATE FUNCTION My_Decrypt
 (
   enckey            TEXT,
@@ -245,13 +187,7 @@ SET hashkey = SHA2( HEX( DES_ENCRYPT( enckey ) ), 256 );
 return AES_DECRYPT( UNHEX( encvalue ), hashkey );
 
 END
-//
-delimiter ;
-~
-
-~sp_util~
-DROP   FUNCTION Old_Users_Compute_Hash;
-delimiter //
+;
 CREATE FUNCTION Old_Users_Compute_Hash
 (
   $salt                             INT(11),
@@ -264,16 +200,7 @@ BEGIN
 return MD5( concat($value, $salt) );
 
 END
-//
-delimiter ;
-~
-
-
-...		Access Control
-
-~sp_util~
-DROP   FUNCTION Is_Local_Caller;
-delimiter //
+;
 CREATE FUNCTION Is_Local_Caller
 ()
 RETURNS BOOL
@@ -287,14 +214,7 @@ SET $USER = USER();
 return ('public@localhost' = $USER OR 'root@localhost' = $USER);
 
 END
-//
-delimiter ;
-~
-
-
-~sp_util~
-DROP   FUNCTION Is_Local_Root_Caller;
-delimiter //
+;
 CREATE FUNCTION Is_Local_Root_Caller
 ()
 RETURNS BOOL
@@ -308,16 +228,7 @@ SET $USER = USER();
 return ('root@localhost' = $USER);
 
 END
-//
-delimiter ;
-~
-
-
-...		Paging
-
-~sp_util~
-DROP   PROCEDURE CheckLimitOffset;
-DELIMITER //
+;
 CREATE PROCEDURE CheckLimitOffset
 (
 INOUT $limit                       INT(11),
@@ -334,17 +245,7 @@ IF "" = $offset THEN
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
-
-...		Timezone
-
-~sp_util~
-DROP   FUNCTION GetTimeZone;
-DELIMITER //
+;
 CREATE FUNCTION GetTimeZone
 ()
 RETURNS CHAR(6)
@@ -362,13 +263,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION AsAppleTime;
-DELIMITER //
+;
 CREATE FUNCTION AsAppleTime
 (
   $datetime DATETIME
@@ -380,13 +275,7 @@ BEGIN
 return CONCAT( DATE( $datetime ), "T", TIME( $datetime ), ".000", GetTimeZone() );
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION ConvertZoneToTime;
-DELIMITER //
+;
 CREATE FUNCTION ConvertZoneToTime
 (
   $zone CHAR(6)
@@ -398,13 +287,7 @@ BEGIN
 return CONVERT( REPLACE( $zone, "+", " " ), TIME );
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION ConvertTo;
-DELIMITER //
+;
 CREATE FUNCTION ConvertTo
 (
   $datetime DATETIME
@@ -420,13 +303,7 @@ SET $dx = DATE_SUB( $datetime, INTERVAL 1 HOUR );
 return $dx;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION ConvertToLocalTimeZone;
-DELIMITER //
+;
 CREATE FUNCTION ConvertToLocalTimeZone
 (
   $appletime CHAR(29)
@@ -515,13 +392,7 @@ END IF;
 return $datetime;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION ConvertWeekToDate;
-DELIMITER //
+;
 CREATE FUNCTION ConvertWeekToDate
 (
   $year YEAR,
@@ -539,13 +410,7 @@ SET $date_string = CONCAT( $year, $week, " MONDAY" );
 return STR_TO_DATE( $date_string, '%X%V %W' );
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION Is_Read_Only;
-DELIMITER //
+;
 CREATE FUNCTION Is_Read_Only
 ()
 RETURNS BOOLEAN
@@ -559,13 +424,7 @@ SELECT @@global.read_only INTO $read_only;
 return $read_only;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_util~
-DROP   FUNCTION Get_Time;
-DELIMITER //
+;
 CREATE FUNCTION Get_Time
 (
    $datetime TEXT
@@ -613,7 +472,4 @@ END IF;
 return $time;
 
 END
-//
-DELIMITER ;
-~
-
+;

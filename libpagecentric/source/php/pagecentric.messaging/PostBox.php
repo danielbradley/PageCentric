@@ -65,6 +65,7 @@ class PostBox
 					}
 
 					$email->addTo( $to );
+					echo "SENDUSEREMAIL == TRUE, sending to " . $to . "\n";
 
 					if ( defined( "BCCUSERMAIL") && BCCUSERMAIL )
 					{
@@ -78,7 +79,7 @@ class PostBox
 				}
 				else
 				{
-					echo "SENDUSEREMAIL == FALSE, sending to " . TECH_EMAIL . "\n";
+					echo "SENDUSEREMAIL == FALSE, sending to " . TECH_EMAIL . " (instead of $to)\n";
 
 					$email->addTo( TECH_EMAIL );
 				}
