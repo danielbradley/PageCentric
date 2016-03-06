@@ -28,4 +28,6 @@ stored_procedures:
 	extract -s -p "sp_files"            _current/*.txt > _SQL/04StoredProcedures/sp_files.sql
 	extract -s -p "sp_articles"         _current/*.txt > _SQL/04StoredProcedures/sp_articles.sql
 	extract -s -p "sp_geo"              _current/*.txt > _SQL/04StoredProcedures/sp_geo.sql
+	extract -s -p "sp_replicantdb"      _current/*.txt > _SQL/04StoredProcedures/sp_replicantdb.sql
+
 #	extract -s -p "sp"                  _current/*.txt > _SQL/04StoredProcedures/sp.sql

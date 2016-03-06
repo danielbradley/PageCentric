@@ -67,8 +67,46 @@ class ReplicantDB
 	private $message  = "";
 	private $error    = "";
 
-
 	static function CallProcedure( $database, $procedure, $debug )
+	{
+		return self::CallLoggedProcedure( $database, $procedure, $debug );
+	}
+
+	static function CallLoggedProcedure( $database, $procedure, $debug )
+	{
+		$result  = self::PrivateCallProcedure( $database, $procedure, $debug );
+		$result2 = self::_LogProcedure( $database, $procedure, $result, $debug );
+
+		return (object) $result;
+	}
+
+	static function CallUnloggedProcedure( $database, $procedure, $debug )
+	{
+		return self::PrivateCallProcedure( $database, $procedure, $debug );
+	}
+
+	static function _LogProcedure( $database, $procedure, $result, $debug )
+	{
+		error_log( "Log Procedure" );
+
+		$sid       = self::ExtractSid( $procedure );
+		$encoded   = htmlentities( $procedure, ENT_QUOTES );
+		$type      = "???";
+		$microsecs = $result->microsecs;
+		$status    = $result->status;
+		$result    = "";
+		$error     = property_exists( $result, "error" ) ? $result->error : "";
+		$ipaddress = $_SERVER["REMOTE_ADDR"];
+		$referrer  = $_SERVER["HTTP_REFERER"];
+
+		$sql     = "ReplicantDB_Log_Replace( '$sid', '$encoded', '$type', '$microsecs', '$status', '$result', '$error', '$ipaddress', '$referrer' )";
+
+		error_log( $sql );
+
+		return self::PrivateCallProcedure( $database, $sql, $debug );
+	}
+
+	static function PrivateCallProcedure( $database, $procedure, $debug )
 	{
 		$sql = "CALL $procedure";
 
@@ -82,10 +120,15 @@ class ReplicantDB
 		$result['warning' ]  = "";
 		$result['URL']       = REDIRECT_URL;
 		$result['target_id'] = array_key_exists( "target_id", $_REQUEST ) ? $_REQUEST["target_id"] : "";
+		$result['microsecs'] = 0;
 
 		$db0 = self::Singleton( "ONLY"      );
 		$db1 = self::Singleton( "PRIMARY"   );
 		$db2 = self::Singleton( "SECONDARY" );
+
+		$return_as_float = TRUE;
+
+		$start = microtime( $return_as_float );
 
 		self::TryProcedure( $result, $db0, $database,  "DB_HOSTNAME", $sql, $debug ) ||
 		self::TryProcedure( $result, $db1, $database, "DB_HOSTNAME1", $sql, $debug ) ||
@@ -111,6 +154,10 @@ class ReplicantDB
 
 			//error_log( $result['error'] );
 		}
+
+		$conversion_from_seconds_to_microseconds = 1000000;
+
+		$result['microsecs'] = (int) ((microtime( $return_as_float ) - $start) * $conversion_from_seconds_to_microseconds);
 		
 		return (object) $result;
 	}
@@ -171,6 +218,7 @@ class ReplicantDB
 			$result['message'] = $db->message;
 			$result['error'  ] = $db->error;
 		}
+
 		return $connection;
 	}
 
@@ -411,7 +459,21 @@ class ReplicantDB
 	{
 		return mysqli_error( $this->mysqli );
 	}
+
+	static function ExtractSid( $procedure )
+	{
+		$sid  = "";
+		$bits = explode( "'", $procedure );
+
+		if ( (2 < count( $bits )) && (64 == strlen( $bits[1] )) )
+		{
+			$sid = $bits[1];
+		}
+
+		return $sid;
+	}
 }
+
 
 /*
 

@@ -1,0 +1,82 @@
+CREATE PROCEDURE ReplicantDB_Log_Replace
+(
+$Sid                                  CHAR(64),                                  # SessionID of user, recorded relevant details.
+$command                              TEXT,                                      # Full text of command
+$command_type                         CHAR(99),                                  # 'WRITE', 'READ', '???'
+$command_duration_microsecs           INT(11),                                   # Duration of SQL call + (baggage).
+$status                               CHAR(99),                                  # 'OK' or 'ERROR'
+$result                               CHAR(99),                                  # Result either 'ROWS(n)' OR 'ID(x)'
+$error                                CHAR(99),                                  # If an error occured, record message.
+$ipaddress                            CHAR(99),                                  #
+$referrer                             CHAR(99)                                   #
+)
+BEGIN
+
+DECLARE $command_name                 CHAR(99) DEFAULT '';
+DECLARE $user_name                    CHAR(99) DEFAULT '';
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+    SET $command_name = GET_JTH( $command, '(', 1 );
+
+    CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+    IF @USER THEN
+
+        SELECT CONCAT( given_name, ' ', family_name ) INTO $user_name FROM users WHERE USER=@USER;
+
+        INSERT INTO replicantdb_log
+            (  RDBLOG_ID,  logged,  command_name,  command_type,  command_duration_microsecs,  status,  result,  error,  USER,  user_email,  user_name,  user_idtype,  ipaddress,  referrer,  command )
+        VALUES
+            (          0,   NOW(), $command_name, $command_type, $command_duration_microsecs, $status, $result, $error, @USER,      @email, $user_name,      @idtype, $ipaddress, $referrer, $command );
+
+    END IF;
+
+END IF;
+
+END
+;
+CREATE PROCEDURE ReplicantDB_Log_Retrieve
+(
+  $Sid                                 CHAR(64),
+  $filter                              TEXT,
+  $order                               TEXT,
+  $limit                               INT(11),
+  $offset                              INT(11)
+)
+BEGIN
+
+IF @@read_only THEN
+
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
+
+ELSE
+
+    CALL Users_Authorise_Sessionid( $Sid, @email, @USER, @idtype );
+
+    CALL CheckLimitOffset( $limit, $offset );
+
+    IF "COORDINATOR" = @idtype OR "ICURO" = @idtype OR "ADMIN" = @idtype THEN
+
+        CASE $filter
+        WHEN 'today'     THEN SELECT * FROM view_replicantdb_log WHERE     DATE(logged)=DATE(NOW())                                    ORDER BY RDBLOG_ID DESC LIMIT $LIMIT OFFSET $OFFSET;
+        WHEN 'yesterday' THEN SELECT * FROM view_replicantdb_log WHERE     DATE(logged)=DATE(DATE_SUB( NOW(), INTERVAL 1 DAY ) )       ORDER BY RDBLOG_ID DESC LIMIT $LIMIT OFFSET $OFFSET;
+        WHEN 'this_week' THEN SELECT * FROM view_replicantdb_log WHERE YEARWEEK(logged)=YEARWEEK(NOW())                                ORDER BY RDBLOG_ID DESC LIMIT $LIMIT OFFSET $OFFSET;
+        WHEN 'last_week' THEN SELECT * FROM view_replicantdb_log WHERE YEARWEEK(logged)=YEARWEEK(DATE_SUB( NOW(), INTERVAL 1 WEEK ) )  ORDER BY RDBLOG_ID DESC LIMIT $LIMIT OFFSET $OFFSET;
+        ELSE                  SELECT * FROM view_replicantdb_log                                                                       ORDER BY RDBLOG_ID DESC LIMIT $LIMIT OFFSET $OFFSET;
+        END CASE;
+
+    ELSE
+
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'INVALID_AUTHORISATION (ReplicantDB_Log_Retrieve)';
+
+    END IF;
+
+END IF;
+
+END
+;

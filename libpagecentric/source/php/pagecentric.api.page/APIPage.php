@@ -151,6 +151,11 @@ class APIPage extends Page
 
 
 
+		//	ReplicantDB
+		case "/api/replicantdb/log/":
+			echo JSON3::Encode( \replicantdb\Log::Retrieve( $sid, $this->request, $debug ) );
+			break;
+
 
 
 

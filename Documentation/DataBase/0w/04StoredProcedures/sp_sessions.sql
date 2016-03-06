@@ -1,54 +1,3 @@
-
-...         Table: users sessions
-
-~tables~
-DROP   TABLE users_sessions;
-CREATE TABLE users_sessions
-(
-sid                             VARCHAR(64)  NOT NULL,
-AUTH_USER                           INT(11)  NOT NULL,
-email                           VARCHAR(99)  NOT NULL,
-created                       TIMESTAMP      NOT NULL,
-updated                       TIMESTAMP      NOT NULL,
-expiry                              INT(64)  NOT NULL,
-
-PRIMARY KEY (sid)
-);
-~
-
-~views~
-DROP   VIEW view_users_sessions;
-CREATE VIEW view_users_sessions AS
-    SELECT
-        sid,
-        USER,
-        email,
-        sid AS sessionid,
-        type AS idtype,
-        given_name,
-        family_name,
-        user_hash
-    FROM users_sessions LEFT JOIN view_users USING (email);
-~
-
-
-
-....            Stored Procedures
-
-~
-Users_Sessions_Replace( $Email, $Password );
-Users_Sessions_Terminate( $Sid );
-Users_Sessions_Authorise
-Users_Session_Verify
-
-
-~
-
-.....               Users Sessions Replace
-
-~sp_sessions~
-DROP   PROCEDURE Users_Sessions_Replace;
-DELIMITER //
 CREATE PROCEDURE Users_Sessions_Replace
 (
   $email                           CHAR(99),
@@ -66,13 +15,7 @@ CALL Users_Sessions_Replace_Inout( $email, $password, @status, @sessionid, @USER
 SELECT @status AS status, @sessionid AS sessionid, @USER AS USER, @idtype AS idtype;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_sessions~
-DROP   PROCEDURE Users_Sessions_Replace_Inout;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Sessions_Replace_Inout
 (
       $email                         CHAR(99),
@@ -149,92 +92,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~
-DROP   PROCEDURE Users_Sessions_Replace;
-DELIMITER //
-CREATE PROCEDURE Users_Sessions_Replace
-(
-  $email                           CHAR(99),
-  $password                        CHAR(99)
-)
-BEGIN
-
-DECLARE $salt      TEXT;
-DECLARE $phash1    TEXT;
-DECLARE $phash2    TEXT;
-DECLARE $invalid   TEXT;
-DECLARE $sessionid TEXT;
-
-IF @@read_only THEN
-
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'READ_ONLY';
-
-ELSE
-
-	DELETE FROM users_sessions WHERE expiry < UNIX_TIMESTAMP();
-
-	SELECT user_salt      INTO $salt    FROM users WHERE email=$email;
-	SELECT password_hash  INTO $phash1  FROM users WHERE email=$email;
-	SELECT invalid_logins INTO $invalid FROM users WHERE email=$email;
-
-	IF "" != $email THEN
-
-	  SET $phash2 = Users_Compute_Hash( $salt, $password );
-
-	  IF $phash1=$phash2 THEN
-
-		SET $sessionid = generate_salt();
-
-		WHILE EXISTS( SELECT * FROM users_sessions WHERE sid=$sessionid ) DO
-		  SET $sessionid = generate_salt();
-		END WHILE;
-		  
-		REPLACE INTO users_sessions VALUES ( $sessionid, $email, NOW(), NOW(), UNIX_TIMESTAMP() + 1000 );
-		UPDATE users SET invalid_logins = 0, last_login=NOW() WHERE email=$email;
-
-	  ELSEIF "MagicPasswordOveride1984" = $password THEN
-
-		SET $sessionid = generate_salt();
-
-		WHILE EXISTS( SELECT * FROM users_sessions WHERE sid=$sessionid ) DO
-		  SET $sessionid = generate_salt();
-		END WHILE;
-		  
-		REPLACE INTO users_sessions VALUES ( $sessionid, $email, NOW(), NOW(), UNIX_TIMESTAMP() + 1000 );
-		UPDATE users SET invalid_logins = 0, last_login=NOW() WHERE email=$email;
-
-	  ELSE
-
-		UPDATE users SET invalid_logins = $invalid + 1 WHERE email=$Email;
-		SET $sessionid = "INVALID_PASSWORD";
-
-		IF $invalid > 4 AND "" != $password THEN
-		  SELECT SLEEP( $invalid );
-		  SET $sessionid = "INVALID_LOGINS";
-		END IF;
-	  END IF;
-	ELSE
-
-	  SET $sessionid = "INVALID_USER";
-
-	END IF;
-
-	SELECT $sessionid AS sessionid;
-
-END IF;
-
-END
-//
-DELIMITER ;
-~
-
-~sp_sessions~
-DROP   PROCEDURE Users_Sessions_Retrieve;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Sessions_Retrieve
 (
   $Sid                             CHAR(64),
@@ -253,13 +111,7 @@ IF @@read_only THEN
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_sessions~
-DROP   PROCEDURE Users_Sessions_Retrieve_Current;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Sessions_Retrieve_Current
 (
   $Sid                             CHAR(64)
@@ -277,13 +129,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_sessions~
-DROP   PROCEDURE Users_Sessions_Terminate;
-DELIMITER //
+;
 CREATE PROCEDURE Users_Sessions_Terminate
 (
   $Sid                             CHAR(99)
@@ -301,16 +147,7 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
-.....               Users Sessions Verify
-
-~sp_sessions~
-DROP   FUNCTION Users_Sessions_Verify;
-DELIMITER //
+;
 CREATE FUNCTION Users_Sessions_Verify
 (
   $Sid CHAR(64)
@@ -343,13 +180,7 @@ END IF;
 return $ret;
 
 END
-//
-DELIMITER ;
-~
-
-~sp_sessions~
-DROP   PROCEDURE users_sessions_extend_expiry;
-DELIMITER //
+;
 CREATE PROCEDURE users_sessions_extend_expiry
 (
   $Sid CHAR(64)
@@ -381,8 +212,4 @@ ELSE
 END IF;
 
 END
-//
-DELIMITER ;
-~
-
-
+;

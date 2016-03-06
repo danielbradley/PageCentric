@@ -258,6 +258,10 @@ spl_autoload_register( function ( $classname )
 		include( "replicantdb/ReplicantDB.php" );
 		break;
 
+	case 'replicantdb.Log':
+		include( "replicantdb/Log.php" );
+		break;
+
 	case 'Page':
 		include( "pagecentric.page/Page.php" );
 		break;
